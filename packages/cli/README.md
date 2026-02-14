@@ -12,4 +12,6 @@ Flags:
 
 - `--provider fcm` (required provider in v1)
 - `--platform ios,android` (default is `ios,android`)
+- `--entry src/index.tsx` to force a custom entry file path
+- `--no-wire-entry` to skip auto-wiring bootstrap in the entry file
 - `--skip-install` to skip package manager installation and only update `package.json`

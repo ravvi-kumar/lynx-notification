@@ -16,6 +16,11 @@ export const ANDROID_ROOT_REPO_MARKERS = {
   end: '// <<< lynx-notifications-repositories',
 }
 
+export const ENTRY_BOOTSTRAP_MARKERS = {
+  start: '// >>> lynx-notifications-bootstrap',
+  end: '// <<< lynx-notifications-bootstrap',
+}
+
 export function createBootstrapTemplate(): string {
   return `import * as Notifications from '${CORE_PACKAGE_NAME}'
 
@@ -37,6 +42,15 @@ export async function bootstrapNotifications(): Promise<() => void> {
   }
 }
 `
+}
+
+export function createEntryBootstrapSnippet(): string {
+  return `void (async () => {
+  const { bootstrapNotifications } = await import('./notifications/bootstrap')
+  await bootstrapNotifications()
+})().catch(error => {
+  console.warn('[lynx-notifications] bootstrap failed', error)
+})`
 }
 
 export function createIosPodfileSnippet(): string {
@@ -65,6 +79,7 @@ export function createAndroidRootGradleSnippet(): string {
 export function createIntegrationGuide(options: {
   missingNativeDirectories: string[]
   missingNativeFiles: string[]
+  manualSteps?: string[]
 }): string {
   const missingDirectoriesSection = options.missingNativeDirectories.length > 0
     ? options.missingNativeDirectories.map(item => `- ${item}`).join('\n')
@@ -72,6 +87,10 @@ export function createIntegrationGuide(options: {
 
   const missingFilesSection = options.missingNativeFiles.length > 0
     ? options.missingNativeFiles.map(item => `- ${item}`).join('\n')
+    : '- None'
+
+  const manualStepsSection = options.manualSteps && options.manualSteps.length > 0
+    ? options.manualSteps.map(item => `- ${item}`).join('\n')
     : '- None'
 
   return `# Lynx Notifications Integration Guide
@@ -83,6 +102,9 @@ ${missingDirectoriesSection}
 
 ## Missing native files
 ${missingFilesSection}
+
+## Manual follow-ups
+${manualStepsSection}
 
 ## Apply snippets manually
 

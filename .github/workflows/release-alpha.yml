@@ -1,0 +1,31 @@
+name: Release Alpha
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Validate
+        run: |
+          npm run test:packages
+          npm run build:packages
+      - name: Publish @lynx-notifications/core (alpha)
+        run: npm publish --workspace @lynx-notifications/core --tag alpha --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish lynx-notifications CLI (alpha)
+        run: npm publish --workspace lynx-notifications --tag alpha --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

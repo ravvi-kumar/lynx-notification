@@ -7,10 +7,12 @@ import {
   ANDROID_ROOT_REPO_MARKERS,
   CORE_PACKAGE_NAME,
   CORE_VERSION_RANGE,
+  ENTRY_BOOTSTRAP_MARKERS,
   IOS_PODFILE_MARKERS,
   createAndroidAppGradleSnippet,
   createAndroidRootGradleSnippet,
   createBootstrapTemplate,
+  createEntryBootstrapSnippet,
   createIntegrationGuide,
   createIosPodfileSnippet,
 } from '../lib/templates.js'
@@ -26,6 +28,8 @@ export interface Logger {
 
 export interface InitResult {
   bootstrapPath: string
+  entryFilePath?: string
+  entryWired: boolean
   dependencyInstalled: boolean
   patchedFiles: string[]
   integrationGuidePath?: string
@@ -262,6 +266,48 @@ async function patchAndroidProject(cwd: string, patchedFiles: string[]): Promise
   return missingFiles
 }
 
+function findEntryFile(cwd: string, entryArg?: string): string | null {
+  if (entryArg) {
+    const resolved = path.isAbsolute(entryArg)
+      ? entryArg
+      : path.join(cwd, entryArg)
+
+    return existsSync(resolved) ? resolved : null
+  }
+
+  const entryCandidates = [
+    path.join(cwd, 'src', 'index.tsx'),
+    path.join(cwd, 'src', 'index.ts'),
+    path.join(cwd, 'src', 'index.jsx'),
+    path.join(cwd, 'src', 'index.js'),
+    path.join(cwd, 'src', 'main.tsx'),
+    path.join(cwd, 'src', 'main.ts'),
+    path.join(cwd, 'src', 'main.jsx'),
+    path.join(cwd, 'src', 'main.js'),
+  ]
+
+  return entryCandidates.find(candidate => existsSync(candidate)) ?? null
+}
+
+async function wireEntryFile(
+  cwd: string,
+  entryFilePath: string,
+  patchedFiles: string[],
+): Promise<boolean> {
+  const source = await readFile(entryFilePath, 'utf8')
+  const updated = upsertManagedBlock(source, {
+    startMarker: ENTRY_BOOTSTRAP_MARKERS.start,
+    endMarker: ENTRY_BOOTSTRAP_MARKERS.end,
+    content: createEntryBootstrapSnippet(),
+  })
+  const changed = await writeFileIfChanged(entryFilePath, updated)
+  if (changed) {
+    patchedFiles.push(path.relative(cwd, entryFilePath))
+  }
+
+  return true
+}
+
 async function writeManualSnippets(cwd: string): Promise<void> {
   const snippetsRoot = path.join(cwd, '.lynx-notifications', 'snippets')
   await writeFileIfChanged(
@@ -285,6 +331,8 @@ export async function runInitCommand(
 ): Promise<InitResult> {
   let provider = 'fcm'
   let skipInstall = false
+  let wireEntry = true
+  let entryArg: string | undefined
   let platformArg: string | undefined
 
   for (let index = 0; index < rawArgs.length; index += 1) {
@@ -314,6 +362,22 @@ export async function runInitCommand(
 
     if (arg === '--skip-install') {
       skipInstall = true
+      continue
+    }
+
+    if (arg === '--no-wire-entry') {
+      wireEntry = false
+      continue
+    }
+
+    if (arg === '--entry') {
+      entryArg = rawArgs[index + 1]
+      index += 1
+      continue
+    }
+
+    if (arg.startsWith('--entry=')) {
+      entryArg = arg.split('=')[1]
       continue
     }
 
@@ -348,8 +412,23 @@ export async function runInitCommand(
   await writeFileIfChanged(bootstrapPath, createBootstrapTemplate())
 
   const patchedFiles: string[] = []
+  const manualSteps: string[] = []
   const missingNativeDirectories: string[] = []
   const missingNativeFiles: string[] = []
+  const entryFilePath = wireEntry ? findEntryFile(cwd, entryArg) : undefined
+  let entryWired = false
+
+  if (wireEntry) {
+    if (entryFilePath) {
+      entryWired = await wireEntryFile(cwd, entryFilePath, patchedFiles)
+    } else {
+      const entryLabel = entryArg
+        ? entryArg
+        : 'src/index.tsx'
+      manualSteps.push(`Wire bootstrap manually in ${entryLabel}. Add and call bootstrapNotifications from src/notifications/bootstrap.ts.`)
+      logger.warn('Could not find an entry file to auto-wire notifications bootstrap.')
+    }
+  }
 
   for (const platform of platforms) {
     const platformPath = path.join(cwd, platform)
@@ -370,7 +449,11 @@ export async function runInitCommand(
   }
 
   let integrationGuidePath: string | undefined
-  if (missingNativeDirectories.length > 0 || missingNativeFiles.length > 0) {
+  if (
+    missingNativeDirectories.length > 0
+    || missingNativeFiles.length > 0
+    || manualSteps.length > 0
+  ) {
     await writeManualSnippets(cwd)
 
     integrationGuidePath = path.join(cwd, '.lynx-notifications', 'integration-guide.md')
@@ -379,6 +462,7 @@ export async function runInitCommand(
       createIntegrationGuide({
         missingNativeDirectories,
         missingNativeFiles,
+        manualSteps,
       }),
     )
 
@@ -389,6 +473,8 @@ export async function runInitCommand(
 
   return {
     bootstrapPath,
+    entryFilePath: entryFilePath ?? undefined,
+    entryWired,
     dependencyInstalled: !skipInstall,
     patchedFiles,
     integrationGuidePath,

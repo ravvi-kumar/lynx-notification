@@ -10,10 +10,12 @@
   "scripts": {
     "build": "rspeedy build",
     "build:packages": "npm run build --workspaces --if-present",
+    "ci:all": "npm run lint && npm run test && npm run test:packages && npm run typecheck:packages && npm run build:packages && npm run build",
     "dev": "rspeedy dev",
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rspeedy preview",
+    "release:alpha:dry-run": "npm publish --workspace @lynx-notifications/core --tag alpha --access public --dry-run && npm publish --workspace lynx-notifications --tag alpha --access public --dry-run",
     "test": "vitest run",
     "test:packages": "npm run test --workspaces --if-present",
     "typecheck:packages": "npm run typecheck --workspaces --if-present"

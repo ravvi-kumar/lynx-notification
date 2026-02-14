@@ -1,24 +1,31 @@
 ## Lynx Notifications Workspace
 
-This repository now contains:
+This repository contains:
 
 - A Lynx starter app at `/src`
 - `@lynx-notifications/core` at `/packages/core`
 - `lynx-notifications` CLI at `/packages/cli`
-- A demo workspace package at `/examples/lynx-notifications-demo`
+- Demo workspace package at `/examples/lynx-notifications-demo`
 - Native artifact scaffolding at `/native`
 
-### Core Commands
+## Quick Start
+
+```bash
+npx lynx-notifications init --provider fcm --platform ios,android
+```
+
+## Docs
+
+- `/docs/quick-start.md`
+- `/docs/native-integration.md`
+
+## Commands
 
 ```bash
 npm run dev
 npm run build
 npm run test
-```
-
-### Package Commands
-
-```bash
+npm run lint
 npm run build:packages
 npm run test:packages
 npm run typecheck:packages

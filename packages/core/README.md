@@ -15,3 +15,11 @@ const subscription = Notifications.addNotificationReceivedListener(notification 
 
 subscription.remove()
 ```
+
+## Error Codes
+
+- `ERR_NOTIFICATIONS_UNAVAILABLE`
+- `ERR_PERMISSION_DENIED`
+- `ERR_PROVIDER_UNCONFIGURED`
+- `ERR_INVALID_ARGUMENT`
+- `ERR_NATIVE_FAILURE`

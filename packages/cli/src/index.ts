@@ -6,7 +6,7 @@ function printHelp(): void {
   console.log(`lynx-notifications
 
 Usage:
-  lynx-notifications init [--provider fcm] [--platform ios,android] [--skip-install]
+  lynx-notifications init [--provider fcm] [--platform ios,android] [--entry src/index.tsx] [--no-wire-entry] [--skip-install]
 
 Commands:
   init      Scaffold notifications bootstrap and native integration markers.

@@ -137,6 +137,61 @@ describe('notifications core API', () => {
     })
   })
 
+  it('rejects scheduleNotificationAsync when date trigger has repeats=true', async () => {
+    await expect(
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Reminder',
+        },
+        trigger: {
+          type: 'date',
+          date: Date.now() + 15_000,
+          repeats: true as unknown as false,
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: 'ERR_INVALID_ARGUMENT',
+    })
+  })
+
+  it('returns last notification response from native module', async () => {
+    const response = sampleNotificationResponse()
+
+    installNativeModule({
+      getLastNotificationResponse: cb => cb(ok(response)),
+    })
+
+    await expect(Notifications.getLastNotificationResponseAsync()).resolves.toEqual(response)
+  })
+
+  it('returns provider unconfigured error from native token request', async () => {
+    installNativeModule({
+      getPushToken: (_provider, cb) => {
+        cb({
+          ok: false,
+          error: {
+            code: 'ERR_PROVIDER_UNCONFIGURED',
+            message: 'Provider not configured.',
+          },
+        })
+      },
+    })
+
+    await expect(Notifications.getDevicePushTokenAsync()).rejects.toMatchObject({
+      code: 'ERR_PROVIDER_UNCONFIGURED',
+    })
+  })
+
+  it('rejects unsupported provider argument', async () => {
+    await expect(
+      Notifications.getDevicePushTokenAsync({
+        provider: 'apns' as unknown as 'fcm',
+      }),
+    ).rejects.toMatchObject({
+      code: 'ERR_INVALID_ARGUMENT',
+    })
+  })
+
   it('dispatches events and cleans up subscriptions idempotently', async () => {
     const stopObservingEvents = vi.fn((cb?: (result: NativeResult<null>) => void) => {
       cb?.(ok(null))
