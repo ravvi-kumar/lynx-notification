@@ -1,20 +1,18 @@
 package io.lynx.notifications.fcm;
 
+import com.google.firebase.messaging.FirebaseMessaging;
 import io.lynx.notifications.core.NotificationError;
 import io.lynx.notifications.core.PushToken;
 import io.lynx.notifications.core.PushTokenProvider;
 
 /**
  * FCM provider bridge.
- *
- * Integrate FirebaseMessaging in the supplied TokenFetcher:
- * FirebaseMessaging.getInstance().getToken() -> callback token string.
  */
 public final class FcmPushTokenProvider implements PushTokenProvider {
   private final TokenFetcher tokenFetcher;
 
   public FcmPushTokenProvider() {
-    this.tokenFetcher = null;
+    this(new FirebaseTokenFetcher());
   }
 
   public FcmPushTokenProvider(TokenFetcher tokenFetcher) {
@@ -22,29 +20,53 @@ public final class FcmPushTokenProvider implements PushTokenProvider {
   }
 
   @Override
-  public PushToken getToken() throws NotificationError {
+  public void getToken(PushTokenProvider.TokenCallback callback) {
     if (tokenFetcher == null) {
-      throw new NotificationError(
+      callback.onError(new NotificationError(
           "ERR_PROVIDER_UNCONFIGURED",
           "FCM provider requires Firebase token fetcher wiring."
-      );
+      ));
+      return;
     }
 
-    String token;
-    try {
-      token = tokenFetcher.fetch();
-    } catch (Exception exception) {
-      throw new NotificationError("ERR_NATIVE_FAILURE", exception.getMessage());
-    }
+    tokenFetcher.fetch(new TokenFetcher.Callback() {
+      @Override
+      public void onSuccess(String token) {
+        if (token == null || token.isEmpty()) {
+          callback.onError(new NotificationError(
+              "ERR_PROVIDER_UNCONFIGURED",
+              "FCM token was empty."
+          ));
+          return;
+        }
 
-    if (token == null || token.isEmpty()) {
-      throw new NotificationError("ERR_PROVIDER_UNCONFIGURED", "FCM token was empty.");
-    }
+        callback.onSuccess(new PushToken("fcm", token));
+      }
 
-    return new PushToken("fcm", token);
+      @Override
+      public void onFailure(Throwable throwable) {
+        callback.onError(NotificationError.fromThrowable(throwable));
+      }
+    });
   }
 
   public interface TokenFetcher {
-    String fetch() throws Exception;
+    void fetch(Callback callback);
+
+    interface Callback {
+      void onSuccess(String token);
+
+      void onFailure(Throwable throwable);
+    }
+  }
+
+  private static final class FirebaseTokenFetcher implements TokenFetcher {
+    @Override
+    public void fetch(Callback callback) {
+      FirebaseMessaging.getInstance()
+          .getToken()
+          .addOnSuccessListener(callback::onSuccess)
+          .addOnFailureListener(callback::onFailure);
+    }
   }
 }

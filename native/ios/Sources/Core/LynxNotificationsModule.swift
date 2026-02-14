@@ -29,7 +29,7 @@ public final class LynxNotificationsModule {
     callback(NativeResult.ok(permissionProvider.requestPermissions().toDictionary).asDictionary())
   }
 
-  public func getPushToken(provider: String, callback: MethodCallback) {
+  public func getPushToken(provider: String, callback: @escaping MethodCallback) {
     guard let tokenProvider = pushProviders.get(provider) else {
       callback(
         NativeResult<Any?>.error(
@@ -40,11 +40,13 @@ public final class LynxNotificationsModule {
       return
     }
 
-    do {
-      let token = try tokenProvider.getToken()
-      callback(NativeResult.ok(token.toDictionary).asDictionary())
-    } catch {
-      callback(NotificationError.from(error).toNativeResult.asDictionary())
+    tokenProvider.getToken { result in
+      switch result {
+      case let .success(token):
+        callback(NativeResult.ok(token.toDictionary).asDictionary())
+      case let .failure(error):
+        callback(error.toNativeResult.asDictionary())
+      }
     }
   }
 
@@ -170,7 +172,7 @@ public final class NotificationPermissions {
 }
 
 public protocol PushTokenProvider {
-  func getToken() throws -> PushToken
+  func getToken(_ completion: @escaping (Result<PushToken, NotificationError>) -> Void)
 }
 
 public final class PushTokenProviderRegistry {
@@ -270,7 +272,11 @@ public struct NotificationError: Error {
       return value
     }
 
-    return NotificationError(code: "ERR_NATIVE_FAILURE", message: error.localizedDescription)
+    let message = error.localizedDescription.isEmpty
+      ? "Native notifications error"
+      : error.localizedDescription
+
+    return NotificationError(code: "ERR_NATIVE_FAILURE", message: message)
   }
 
   public var toNativeResult: NativeResult<Any?> {

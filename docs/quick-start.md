@@ -19,6 +19,11 @@ Optional flags:
 - `--entry src/main/index.tsx` for custom app entry files
 - `--no-wire-entry` to skip entry auto-wiring
 
+Native host examples:
+
+- `examples/native-host/android/LynxNotificationsHostIntegration.java`
+- `examples/native-host/ios/LynxNotificationsHostIntegration.swift`
+
 ## Use in App Code
 
 ```ts

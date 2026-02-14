@@ -32,3 +32,8 @@ Reference implementations:
 
 - Android: `native/android/core/src/main/java/io/lynx/notifications/core/LynxNotificationsModule.java`
 - iOS: `native/ios/Sources/Core/LynxNotificationsModule.swift`
+
+Event forwarders:
+
+- Android: `native/android/core/src/main/java/io/lynx/notifications/core/LynxNotificationsEventForwarder.java`
+- iOS: `native/ios/Sources/Core/LynxNotificationsEventForwarder.swift`

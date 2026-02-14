@@ -17,7 +17,12 @@ Core implementation templates:
 - `core/src/main/java/io/lynx/notifications/core/InMemoryLocalNotificationScheduler.java`
 - `core/src/main/java/io/lynx/notifications/core/LynxNotificationsAuthValidator.java`
 - `core/src/main/java/io/lynx/notifications/core/LynxNotificationsInstaller.java`
+- `core/src/main/java/io/lynx/notifications/core/LynxNotificationsEventForwarder.java`
 
 FCM provider template:
 
 - `fcm/src/main/java/io/lynx/notifications/fcm/FcmPushTokenProvider.java`
+
+Unit test scaffold:
+
+- `core/src/test/java/io/lynx/notifications/core/LynxNotificationsModuleTest.java`

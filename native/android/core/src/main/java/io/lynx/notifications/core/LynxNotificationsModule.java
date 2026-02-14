@@ -44,12 +44,17 @@ public final class LynxNotificationsModule {
       return;
     }
 
-    try {
-      PushToken token = tokenProvider.getToken();
-      callback.resolve(NativeResult.ok(token.toMap()));
-    } catch (NotificationError error) {
-      callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
-    }
+    tokenProvider.getToken(new PushTokenProvider.TokenCallback() {
+      @Override
+      public void onSuccess(PushToken token) {
+        callback.resolve(NativeResult.ok(token.toMap()));
+      }
+
+      @Override
+      public void onError(NotificationError error) {
+        callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
+      }
+    });
   }
 
   public void scheduleNotification(Map<String, Object> request, MethodCallback callback) {

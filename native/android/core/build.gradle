@@ -11,6 +11,14 @@ java {
   targetCompatibility = JavaVersion.VERSION_17
 }
 
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  testImplementation 'junit:junit:4.13.2'
+}
+
 publishing {
   publications {
     core(MavenPublication) {

@@ -55,7 +55,7 @@ Installer helper template: `native/android/core/src/main/java/io/lynx/notificati
 - Android adapter template: `native/android/fcm/src/main/java/io/lynx/notifications/fcm/FcmPushTokenProvider.java`
 - iOS adapter template: `native/ios/Sources/FCM/FcmPushTokenProvider.swift`
 
-Replace templates with Firebase token retrieval and callback envelope conversion.
+Both templates are callback-based and include Firebase wiring entry points. Replace the token fetch implementation if your host has a custom push stack.
 
 ## Scheduler and Permission Templates
 
@@ -63,3 +63,19 @@ Replace templates with Firebase token retrieval and callback envelope conversion
 - Android permission template: `native/android/core/src/main/java/io/lynx/notifications/core/NoopPermissionProvider.java`
 - iOS local scheduler template: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`InMemoryLocalNotificationScheduler`)
 - iOS permission template: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`NoopPermissionProvider`)
+
+## Event Forwarders
+
+- Android forwarder: `native/android/core/src/main/java/io/lynx/notifications/core/LynxNotificationsEventForwarder.java`
+- iOS forwarder: `native/ios/Sources/Core/LynxNotificationsEventForwarder.swift`
+
+Use forwarders to map host push lifecycle callbacks into:
+
+- `notification_received`
+- `notification_response`
+- `token_refreshed`
+
+## Native Test Scaffolds
+
+- Android JUnit: `native/android/core/src/test/java/io/lynx/notifications/core/LynxNotificationsModuleTest.java`
+- iOS XCTest: `native/ios/Tests/Core/LynxNotificationsModuleTests.swift`
