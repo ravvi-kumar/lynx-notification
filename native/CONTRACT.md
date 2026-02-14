@@ -1,0 +1,29 @@
+# LynxNotificationsModule Contract
+
+Module name: `LynxNotificationsModule`
+
+Result envelope:
+
+```ts
+type NativeResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: { code: string; message: string } }
+```
+
+Methods:
+
+- `getPermissions(cb)`
+- `requestPermissions(cb)`
+- `getPushToken(provider, cb)`
+- `scheduleNotification(request, cb)`
+- `cancelScheduledNotification(id, cb)`
+- `cancelAllScheduledNotifications(cb)`
+- `getLastNotificationResponse(cb)`
+- `startObservingEvents(cb)`
+- `stopObservingEvents(cb)`
+
+Event payloads emitted by `startObservingEvents` callback:
+
+- `notification_received`
+- `notification_response`
+- `token_refreshed`

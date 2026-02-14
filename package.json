@@ -2,13 +2,21 @@
   "name": "lynx-notification",
   "version": "1.0.0",
   "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
   "scripts": {
     "build": "rspeedy build",
+    "build:packages": "npm run build --workspaces --if-present",
     "dev": "rspeedy dev",
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rspeedy preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:packages": "npm run test --workspaces --if-present",
+    "typecheck:packages": "npm run typecheck --workspaces --if-present"
   },
   "dependencies": {
     "@lynx-js/react": "^0.116.2"
@@ -35,6 +43,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "private": true
+  }
 }

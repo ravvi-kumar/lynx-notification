@@ -1,0 +1,10 @@
+{
+  "name": "lynx-notifications-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@lynx-js/react": "^0.116.2",
+    "@lynx-notifications/core": "workspace:*"
+  }
+}

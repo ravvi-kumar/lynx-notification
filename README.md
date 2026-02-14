@@ -1,21 +1,25 @@
-## Rspeedy project
+## Lynx Notifications Workspace
 
-This is a ReactLynx project bootstrapped with `create-rspeedy`.
+This repository now contains:
 
-## Getting Started
+- A Lynx starter app at `/src`
+- `@lynx-notifications/core` at `/packages/core`
+- `lynx-notifications` CLI at `/packages/cli`
+- A demo workspace package at `/examples/lynx-notifications-demo`
+- Native artifact scaffolding at `/native`
 
-First, install the dependencies:
-
-```bash
-pnpm install
-```
-
-Then, run the development server:
+### Core Commands
 
 ```bash
-pnpm run dev
+npm run dev
+npm run build
+npm run test
 ```
 
-Scan the QRCode in the terminal with your LynxExplorer App to see the result.
+### Package Commands
 
-You can start editing the page by modifying `src/App.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build:packages
+npm run test:packages
+npm run typecheck:packages
+```

@@ -1,0 +1,23 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+}
+
+group = 'io.lynx.notifications'
+version = '0.1.0-alpha'
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+}
+
+publishing {
+  publications {
+    core(MavenPublication) {
+      groupId = 'io.lynx.notifications'
+      artifactId = 'core'
+      version = project.version
+      from components.java
+    }
+  }
+}
