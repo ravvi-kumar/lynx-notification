@@ -16,6 +16,16 @@ export const ANDROID_ROOT_REPO_MARKERS = {
   end: '// <<< lynx-notifications-repositories',
 }
 
+export const ANDROID_MANIFEST_RECEIVER_MARKERS = {
+  start: '<!-- >>> lynx-notifications-receiver -->',
+  end: '<!-- <<< lynx-notifications-receiver -->',
+}
+
+export const ANDROID_MANIFEST_PERMISSION_MARKERS = {
+  start: '<!-- >>> lynx-notifications-permission -->',
+  end: '<!-- <<< lynx-notifications-permission -->',
+}
+
 export const ENTRY_BOOTSTRAP_MARKERS = {
   start: '// >>> lynx-notifications-bootstrap',
   end: '// <<< lynx-notifications-bootstrap',
@@ -76,6 +86,18 @@ export function createAndroidRootGradleSnippet(): string {
 `
 }
 
+export function createAndroidManifestReceiverSnippet(): string {
+  return `<!-- Receiver for local notifications scheduled by LynxNotificationsModule -->
+<receiver
+    android:name=".notifications.AndroidNotificationPublisherReceiver"
+    android:exported="false" />`
+}
+
+export function createAndroidManifestPermissionSnippet(): string {
+  return `<!-- Runtime notification permission required on Android 13+ -->
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />`
+}
+
 export function createIntegrationGuide(options: {
   missingNativeDirectories: string[]
   missingNativeFiles: string[]
@@ -111,6 +133,8 @@ ${manualStepsSection}
 - iOS Podfile snippet: \`.lynx-notifications/snippets/ios.podfile.snippet\`
 - Android app Gradle snippet: \`.lynx-notifications/snippets/android.app.build.gradle.snippet\`
 - Android root Gradle snippet: \`.lynx-notifications/snippets/android.root.build.gradle.snippet\`
+- Android manifest permission snippet: \`.lynx-notifications/snippets/android.manifest.permission.snippet\`
+- Android manifest receiver snippet: \`.lynx-notifications/snippets/android.manifest.receiver.snippet\`
 
 ## JS bootstrap
 

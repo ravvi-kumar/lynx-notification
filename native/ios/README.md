@@ -16,6 +16,8 @@ Core implementation templates:
 - `Sources/Core/LynxNotificationsMethodAuth.swift`
 - `Sources/Core/LynxNotificationsInstaller.swift`
 - `Sources/Core/LynxNotificationsEventForwarder.swift`
+- `Sources/Core/UNUserNotificationCenterPermissionProvider.swift`
+- `Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift`
 
 The core module template includes both `NoopPermissionProvider` and `RuntimeNotificationPermissionProvider` as host wiring options.
 

@@ -1,11 +1,13 @@
 package io.lynx.notifications.example;
 
+import android.app.Activity;
+import android.content.BroadcastReceiver;
 import io.lynx.notifications.core.LynxNotificationsInstaller;
 import io.lynx.notifications.core.LynxNotificationsModule;
 import io.lynx.notifications.core.LynxNotificationsEventForwarder;
 import io.lynx.notifications.core.LocalNotificationScheduler;
+import io.lynx.notifications.core.NotificationPermissionProvider;
 import io.lynx.notifications.core.PushTokenProviderRegistry;
-import io.lynx.notifications.core.RuntimeNotificationPermissionProvider;
 import io.lynx.notifications.fcm.FcmPushTokenProvider;
 
 /**
@@ -19,16 +21,11 @@ public final class LynxNotificationsHostIntegration {
       LynxNotificationsInstaller.AuthValidatorRegistrar authValidatorRegistrar,
       InstallationOptions options
   ) {
-    RuntimeNotificationPermissionProvider permissionProvider = new RuntimeNotificationPermissionProvider(
-        options.permissionStateReader,
-        options.permissionRequestLauncher
-    );
-
     PushTokenProviderRegistry providers = new PushTokenProviderRegistry();
     providers.register("fcm", new FcmPushTokenProvider());
 
     LynxNotificationsModule module = new LynxNotificationsModule(
-        permissionProvider,
+        options.permissionProvider,
         providers,
         options.scheduler
     );
@@ -43,23 +40,36 @@ public final class LynxNotificationsHostIntegration {
     return new Installation(module, eventForwarder);
   }
 
+  /**
+   * Production default options using Android runtime permission + AlarmManager scheduler adapters.
+   */
+  public static InstallationOptions createDefaultOptions(
+      Activity activity,
+      AndroidNotificationPermissionAdapters.PermissionRequestBridge permissionRequestBridge,
+      Class<? extends BroadcastReceiver> notificationReceiverClass
+  ) {
+    NotificationPermissionProvider permissionProvider =
+        AndroidNotificationPermissionAdapters.createPermissionProvider(activity, permissionRequestBridge);
+    LocalNotificationScheduler scheduler = new AndroidAlarmLocalNotificationScheduler(
+        activity.getApplicationContext(),
+        notificationReceiverClass
+    );
+    return new InstallationOptions(permissionProvider, scheduler);
+  }
+
   public static final class InstallationOptions {
-    public final RuntimeNotificationPermissionProvider.PermissionStateReader permissionStateReader;
-    public final RuntimeNotificationPermissionProvider.PermissionRequestLauncher permissionRequestLauncher;
+    public final NotificationPermissionProvider permissionProvider;
     public final LocalNotificationScheduler scheduler;
 
     /**
-     * @param permissionStateReader Read current permission and "can ask again" state from host app APIs.
-     * @param permissionRequestLauncher Launch notification permission prompt from host app APIs.
+     * @param permissionProvider Runtime notification permission provider.
      * @param scheduler Schedule/cancel local notifications via host app APIs.
      */
     public InstallationOptions(
-        RuntimeNotificationPermissionProvider.PermissionStateReader permissionStateReader,
-        RuntimeNotificationPermissionProvider.PermissionRequestLauncher permissionRequestLauncher,
+        NotificationPermissionProvider permissionProvider,
         LocalNotificationScheduler scheduler
     ) {
-      this.permissionStateReader = permissionStateReader;
-      this.permissionRequestLauncher = permissionRequestLauncher;
+      this.permissionProvider = permissionProvider;
       this.scheduler = scheduler;
     }
   }

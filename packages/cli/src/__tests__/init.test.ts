@@ -65,6 +65,12 @@ describe('lynx-notifications init', () => {
     const entry = await readFile(path.join(cwd, 'src', 'index.tsx'), 'utf8')
     expect(entry).toContain('lynx-notifications-bootstrap')
     expect(entry).toContain("import('./notifications/bootstrap')")
+
+    const manifestPermissionSnippet = await readFile(
+      path.join(cwd, '.lynx-notifications', 'snippets', 'android.manifest.permission.snippet'),
+      'utf8',
+    )
+    expect(manifestPermissionSnippet).toContain('android.permission.POST_NOTIFICATIONS')
   })
 
   it('patches native files and entry idempotently without duplicating marker blocks', async () => {
@@ -74,10 +80,19 @@ describe('lynx-notifications init', () => {
     await mkdir(path.join(cwd, 'src'), { recursive: true })
     await writeFile(path.join(cwd, 'src', 'index.tsx'), 'console.info("entry")\n', 'utf8')
     await mkdir(path.join(cwd, 'ios'), { recursive: true })
-    await mkdir(path.join(cwd, 'android', 'app'), { recursive: true })
+    await mkdir(path.join(cwd, 'android', 'app', 'src', 'main'), { recursive: true })
     await writeFile(path.join(cwd, 'ios', 'Podfile'), 'platform :ios, "16.0"\n', 'utf8')
     await writeFile(path.join(cwd, 'android', 'app', 'build.gradle'), 'plugins {}\n', 'utf8')
     await writeFile(path.join(cwd, 'android', 'build.gradle'), 'allprojects {}\n', 'utf8')
+    await writeFile(
+      path.join(cwd, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'),
+      `<manifest package="com.example.app">
+  <application>
+  </application>
+</manifest>
+`,
+      'utf8',
+    )
 
     await runInitCommand(['--skip-install'], cwd, silentLogger)
     await runInitCommand(['--skip-install'], cwd, silentLogger)
@@ -85,11 +100,14 @@ describe('lynx-notifications init', () => {
     const podfile = await readFile(path.join(cwd, 'ios', 'Podfile'), 'utf8')
     const appGradle = await readFile(path.join(cwd, 'android', 'app', 'build.gradle'), 'utf8')
     const rootGradle = await readFile(path.join(cwd, 'android', 'build.gradle'), 'utf8')
+    const manifest = await readFile(path.join(cwd, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8')
     const entry = await readFile(path.join(cwd, 'src', 'index.tsx'), 'utf8')
 
     expect((podfile.match(/# >>> lynx-notifications-pods/g) ?? []).length).toBe(1)
     expect((appGradle.match(/\/\/ >>> lynx-notifications-dependencies/g) ?? []).length).toBe(1)
     expect((rootGradle.match(/\/\/ >>> lynx-notifications-repositories/g) ?? []).length).toBe(1)
+    expect((manifest.match(/<!-- >>> lynx-notifications-permission -->/g) ?? []).length).toBe(1)
+    expect((manifest.match(/<!-- >>> lynx-notifications-receiver -->/g) ?? []).length).toBe(1)
     expect((entry.match(/\/\/ >>> lynx-notifications-bootstrap/g) ?? []).length).toBe(1)
   })
 

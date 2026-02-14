@@ -20,15 +20,22 @@ Current target: `0.1.0-alpha`
 6. Native contract docs and host integration templates
 7. FCM provider templates for Android and iOS
 8. JS unit tests + CLI unit tests + CI scripts
+9. iOS production adapter implementations:
+   - `UNUserNotificationCenterPermissionProvider`
+   - `UNUserNotificationCenterLocalNotificationScheduler`
+10. Android production adapter examples:
+   - runtime permission bridge
+   - AlarmManager scheduler + publish receiver
+11. CLI Android manifest patching for:
+    - `android.permission.POST_NOTIFICATIONS`
+    - local notification receiver block
 
 ## Remaining Before “Real Release”
 
 1. Android host production adapters:
-   - concrete runtime permission requester using Activity Result APIs
-   - concrete local scheduler implementation backed by platform notifications APIs
+   - integrate example adapters into a publishable Android artifact module
 2. iOS host production adapters:
-   - concrete permission requester using `UNUserNotificationCenter`
-   - concrete local scheduler implementation backed by `UNUserNotificationCenter`
+   - integration testing of `UNUserNotificationCenter` adapters on physical devices
 3. End-to-end native test execution in CI:
    - Android Gradle/JUnit/instrumentation runners
    - iOS XCTest runner

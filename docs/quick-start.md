@@ -11,7 +11,7 @@ This command will:
 - Add `@lynx-notifications/core`
 - Generate `src/notifications/bootstrap.ts`
 - Auto-wire your `src/index.*` entry with a managed bootstrap block
-- Patch native iOS/Android files when found
+- Patch native iOS/Android files when found (including Android manifest permission + receiver blocks)
 - Generate `.lynx-notifications/integration-guide.md` when manual steps are needed
 
 Optional flags:
@@ -23,6 +23,10 @@ Native host examples:
 
 - `examples/native-host/android/LynxNotificationsHostIntegration.java`
 - `examples/native-host/ios/LynxNotificationsHostIntegration.swift`
+- Android adapters:
+  - `examples/native-host/android/AndroidNotificationPermissionAdapters.java`
+  - `examples/native-host/android/AndroidAlarmLocalNotificationScheduler.java`
+  - `examples/native-host/android/AndroidNotificationPublisherReceiver.java`
 
 Device validation checklist:
 

@@ -19,11 +19,38 @@ Use the host templates:
 - Android: `examples/native-host/android/LynxNotificationsHostIntegration.java`
 - iOS: `examples/native-host/ios/LynxNotificationsHostIntegration.swift`
 
-Provide real `InstallationOptions`:
+Provide real Android `InstallationOptions`:
 
-1. `permissionStateReader`
-2. `permissionRequestLauncher`
-3. `scheduler`
+1. Create `PermissionRequestBridge` from `AndroidNotificationPermissionAdapters`
+2. Register Activity Result `RequestPermission()` callback and forward to `bridge.onPermissionRequestResult(...)`
+3. Build provider via `AndroidNotificationPermissionAdapters.createPermissionProvider(...)`
+4. Use `AndroidAlarmLocalNotificationScheduler(...)`
+5. Register `AndroidNotificationPublisherReceiver` in `AndroidManifest.xml`
+
+Android bridge sketch:
+
+```java
+AndroidNotificationPermissionAdapters.PermissionRequestBridge bridge =
+    AndroidNotificationPermissionAdapters.createPermissionRequestBridge(activity);
+
+ActivityResultLauncher<String> launcher = activity.registerForActivityResult(
+    new ActivityResultContracts.RequestPermission(),
+    bridge::onPermissionRequestResult
+);
+bridge.attachLauncher(launcher);
+
+LynxNotificationsHostIntegration.InstallationOptions options =
+    LynxNotificationsHostIntegration.createDefaultOptions(
+        activity,
+        bridge,
+        AndroidNotificationPublisherReceiver.class
+    );
+```
+
+iOS `InstallationOptions` already default to:
+
+1. `UNUserNotificationCenterPermissionProvider`
+2. `UNUserNotificationCenterLocalNotificationScheduler`
 
 If native folders are missing, follow `.lynx-notifications/integration-guide.md`.
 

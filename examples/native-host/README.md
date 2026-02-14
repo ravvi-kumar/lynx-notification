@@ -3,6 +3,9 @@
 This folder contains copy-ready integration snippets for host apps embedding Lynx.
 
 - Android: `android/LynxNotificationsHostIntegration.java`
+- Android permission adapter: `android/AndroidNotificationPermissionAdapters.java`
+- Android scheduler: `android/AndroidAlarmLocalNotificationScheduler.java`
+- Android receiver: `android/AndroidNotificationPublisherReceiver.java`
 - iOS: `ios/LynxNotificationsHostIntegration.swift`
 
 These examples show how to:
@@ -16,10 +19,16 @@ The default `FcmPushTokenProvider()` in both examples expects Firebase Messaging
 
 ## Required Host Inputs
 
-Both examples now require an `InstallationOptions` object so host apps can wire real platform behavior:
+Android `InstallationOptions` requires:
 
-1. `permissionStateReader`: returns current notifications permission + canAskAgain state
-2. `permissionRequestLauncher`: launches runtime permission request and returns granted/denied
-3. `scheduler`: schedules/cancels local notifications using host platform APIs
+1. `permissionProvider`: create with `AndroidNotificationPermissionAdapters.createPermissionProvider(...)`
+2. `scheduler`: use `AndroidAlarmLocalNotificationScheduler(...)`
 
-This keeps the shared package provider-agnostic while still supporting production native behavior.
+iOS `InstallationOptions` defaults to production adapters:
+
+1. `UNUserNotificationCenterPermissionProvider`
+2. `UNUserNotificationCenterLocalNotificationScheduler`
+
+Android manifest note:
+
+1. Register `AndroidNotificationPublisherReceiver` in `AndroidManifest.xml`

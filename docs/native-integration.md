@@ -60,9 +60,12 @@ Installer helper template: `native/android/core/src/main/java/io/lynx/notificati
 
 For production behavior, pass real host adapters through `InstallationOptions`:
 
-1. `permissionStateReader`
-2. `permissionRequestLauncher`
-3. `scheduler`
+1. Android:
+   - `NotificationPermissionProvider` from `examples/native-host/android/AndroidNotificationPermissionAdapters.java`
+   - `LocalNotificationScheduler` from `examples/native-host/android/AndroidAlarmLocalNotificationScheduler.java`
+2. iOS:
+   - `UNUserNotificationCenterPermissionProvider` (`native/ios/Sources/Core/UNUserNotificationCenterPermissionProvider.swift`)
+   - `UNUserNotificationCenterLocalNotificationScheduler` (`native/ios/Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift`)
 
 Do not use `NoopPermissionProvider` or in-memory scheduler in release builds.
 
@@ -79,8 +82,16 @@ Both templates are callback-based and include Firebase wiring entry points. Repl
 - Android permission templates:
   - `native/android/core/src/main/java/io/lynx/notifications/core/NoopPermissionProvider.java`
   - `native/android/core/src/main/java/io/lynx/notifications/core/RuntimeNotificationPermissionProvider.java`
-- iOS local scheduler template: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`InMemoryLocalNotificationScheduler`)
-- iOS permission templates: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`NoopPermissionProvider`, `RuntimeNotificationPermissionProvider`)
+- Android production examples:
+  - `examples/native-host/android/AndroidAlarmLocalNotificationScheduler.java`
+  - `examples/native-host/android/AndroidNotificationPermissionAdapters.java`
+  - `examples/native-host/android/AndroidNotificationPublisherReceiver.java`
+- iOS local scheduler templates:
+  - `native/ios/Sources/Core/LynxNotificationsModule.swift` (`InMemoryLocalNotificationScheduler`)
+  - `native/ios/Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift`
+- iOS permission templates:
+  - `native/ios/Sources/Core/LynxNotificationsModule.swift` (`NoopPermissionProvider`, `RuntimeNotificationPermissionProvider`)
+  - `native/ios/Sources/Core/UNUserNotificationCenterPermissionProvider.swift`
 
 ## Event Forwarders
 

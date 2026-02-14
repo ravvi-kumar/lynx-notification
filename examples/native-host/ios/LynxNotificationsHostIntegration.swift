@@ -2,17 +2,14 @@ import Foundation
 
 public enum LynxNotificationsHostIntegration {
   public struct InstallationOptions {
-    public let permissionStateReader: RuntimeNotificationPermissionProvider.PermissionStateReader
-    public let permissionRequestLauncher: RuntimeNotificationPermissionProvider.PermissionRequestLauncher?
+    public let permissionProvider: NotificationPermissionProvider
     public let scheduler: LocalNotificationScheduler
 
     public init(
-      permissionStateReader: @escaping RuntimeNotificationPermissionProvider.PermissionStateReader,
-      permissionRequestLauncher: RuntimeNotificationPermissionProvider.PermissionRequestLauncher?,
-      scheduler: LocalNotificationScheduler
+      permissionProvider: NotificationPermissionProvider = UNUserNotificationCenterPermissionProvider(),
+      scheduler: LocalNotificationScheduler = UNUserNotificationCenterLocalNotificationScheduler()
     ) {
-      self.permissionStateReader = permissionStateReader
-      self.permissionRequestLauncher = permissionRequestLauncher
+      self.permissionProvider = permissionProvider
       self.scheduler = scheduler
     }
   }
@@ -30,18 +27,13 @@ public enum LynxNotificationsHostIntegration {
   public static func install(
     moduleRegistrar: LynxNotificationsInstaller.ModuleRegistrar,
     methodAuthRegistrar: LynxNotificationsInstaller.MethodAuthRegistrar,
-    options: InstallationOptions
+    options: InstallationOptions = InstallationOptions()
   ) -> Installation {
-    let permissionProvider = RuntimeNotificationPermissionProvider(
-      stateReader: options.permissionStateReader,
-      requestLauncher: options.permissionRequestLauncher
-    )
-
     let providers = PushTokenProviderRegistry()
     providers.register(name: "fcm", provider: FcmPushTokenProvider())
 
     let module = LynxNotificationsModule(
-      permissionProvider: permissionProvider,
+      permissionProvider: options.permissionProvider,
       pushProviders: providers,
       scheduler: options.scheduler
     )

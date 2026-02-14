@@ -4,12 +4,16 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
   ANDROID_APP_DEPS_MARKERS,
+  ANDROID_MANIFEST_PERMISSION_MARKERS,
+  ANDROID_MANIFEST_RECEIVER_MARKERS,
   ANDROID_ROOT_REPO_MARKERS,
   CORE_PACKAGE_NAME,
   CORE_VERSION_RANGE,
   ENTRY_BOOTSTRAP_MARKERS,
   IOS_PODFILE_MARKERS,
   createAndroidAppGradleSnippet,
+  createAndroidManifestPermissionSnippet,
+  createAndroidManifestReceiverSnippet,
   createAndroidRootGradleSnippet,
   createBootstrapTemplate,
   createEntryBootstrapSnippet,
@@ -227,6 +231,7 @@ async function patchAndroidProject(cwd: string, patchedFiles: string[]): Promise
     path.join(cwd, 'android', 'settings.gradle'),
     path.join(cwd, 'android', 'settings.gradle.kts'),
   ]
+  const manifestPath = path.join(cwd, 'android', 'app', 'src', 'main', 'AndroidManifest.xml')
 
   const appGradlePath = appGradleCandidates.find(candidate => existsSync(candidate))
   const rootGradlePath = rootGradleCandidates.find(candidate => existsSync(candidate))
@@ -263,7 +268,97 @@ async function patchAndroidProject(cwd: string, patchedFiles: string[]): Promise
     }
   }
 
+  if (!existsSync(manifestPath)) {
+    missingFiles.push('android/app/src/main/AndroidManifest.xml')
+  } else {
+    const manifestSource = await readFile(manifestPath, 'utf8')
+    const manifestUpdated = upsertAndroidManifest(manifestSource)
+
+    const changed = await writeFileIfChanged(manifestPath, manifestUpdated)
+    if (changed) {
+      patchedFiles.push(path.relative(cwd, manifestPath))
+    }
+  }
+
   return missingFiles
+}
+
+function indentBlock(content: string, indent: string): string {
+  return content
+    .split('\n')
+    .map(line => `${indent}${line}`)
+    .join('\n')
+}
+
+function upsertAndroidManifest(source: string): string {
+  const withPermission = upsertAndroidManifestPermission(source)
+  return upsertAndroidManifestReceiver(withPermission)
+}
+
+function upsertAndroidManifestPermission(source: string): string {
+  const normalizedSource = source.replace(/\s+$/, '')
+  const permissionBlock = `${ANDROID_MANIFEST_PERMISSION_MARKERS.start}
+${createAndroidManifestPermissionSnippet().trimEnd()}
+${ANDROID_MANIFEST_PERMISSION_MARKERS.end}`
+
+  if (
+    normalizedSource.includes(ANDROID_MANIFEST_PERMISSION_MARKERS.start)
+    && normalizedSource.includes(ANDROID_MANIFEST_PERMISSION_MARKERS.end)
+  ) {
+    return upsertManagedBlock(normalizedSource, {
+      startMarker: ANDROID_MANIFEST_PERMISSION_MARKERS.start,
+      endMarker: ANDROID_MANIFEST_PERMISSION_MARKERS.end,
+      content: createAndroidManifestPermissionSnippet().trimEnd(),
+    })
+  }
+
+  const applicationOpenPattern = /^(\s*)<application(?:\s|>)/m
+  const match = normalizedSource.match(applicationOpenPattern)
+  if (match) {
+    const childIndent = match[1]
+    const indentedBlock = indentBlock(permissionBlock, childIndent)
+    const updated = normalizedSource.replace(applicationOpenPattern, `${indentedBlock}\n${match[0]}`)
+    return `${updated}\n`
+  }
+
+  return upsertManagedBlock(normalizedSource, {
+    startMarker: ANDROID_MANIFEST_PERMISSION_MARKERS.start,
+    endMarker: ANDROID_MANIFEST_PERMISSION_MARKERS.end,
+    content: createAndroidManifestPermissionSnippet().trimEnd(),
+  })
+}
+
+function upsertAndroidManifestReceiver(source: string): string {
+  const normalizedSource = source.replace(/\s+$/, '')
+  const receiverBlock = `${ANDROID_MANIFEST_RECEIVER_MARKERS.start}
+${createAndroidManifestReceiverSnippet().trimEnd()}
+${ANDROID_MANIFEST_RECEIVER_MARKERS.end}`
+
+  if (
+    normalizedSource.includes(ANDROID_MANIFEST_RECEIVER_MARKERS.start)
+    && normalizedSource.includes(ANDROID_MANIFEST_RECEIVER_MARKERS.end)
+  ) {
+    return upsertManagedBlock(normalizedSource, {
+      startMarker: ANDROID_MANIFEST_RECEIVER_MARKERS.start,
+      endMarker: ANDROID_MANIFEST_RECEIVER_MARKERS.end,
+      content: createAndroidManifestReceiverSnippet().trimEnd(),
+    })
+  }
+
+  const applicationClosePattern = /^(\s*)<\/application>/m
+  const match = normalizedSource.match(applicationClosePattern)
+  if (match) {
+    const childIndent = `${match[1]}  `
+    const indentedBlock = indentBlock(receiverBlock, childIndent)
+    const updated = normalizedSource.replace(applicationClosePattern, `${indentedBlock}\n${match[1]}</application>`)
+    return `${updated}\n`
+  }
+
+  return upsertManagedBlock(normalizedSource, {
+    startMarker: ANDROID_MANIFEST_RECEIVER_MARKERS.start,
+    endMarker: ANDROID_MANIFEST_RECEIVER_MARKERS.end,
+    content: createAndroidManifestReceiverSnippet().trimEnd(),
+  })
 }
 
 function findEntryFile(cwd: string, entryArg?: string): string | null {
@@ -330,6 +425,14 @@ async function writeManualSnippets(cwd: string): Promise<void> {
   await writeFileIfChanged(
     path.join(snippetsRoot, 'android.root.build.gradle.snippet'),
     createAndroidRootGradleSnippet(),
+  )
+  await writeFileIfChanged(
+    path.join(snippetsRoot, 'android.manifest.permission.snippet'),
+    createAndroidManifestPermissionSnippet(),
+  )
+  await writeFileIfChanged(
+    path.join(snippetsRoot, 'android.manifest.receiver.snippet'),
+    createAndroidManifestReceiverSnippet(),
   )
 }
 
