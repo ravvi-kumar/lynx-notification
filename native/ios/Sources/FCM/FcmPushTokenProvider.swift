@@ -1,9 +1,30 @@
 import Foundation
 
 public final class FcmPushTokenProvider: PushTokenProvider {
-  public init() {}
+  public typealias TokenFetcher = () throws -> String
 
-  public func getToken(_ callback: @escaping LynxNotificationsModule.MethodCallback) {
-    callback(.error(code: "ERR_PROVIDER_UNCONFIGURED", message: "FCM provider template requires Firebase integration."))
+  private let tokenFetcher: TokenFetcher?
+
+  public init(tokenFetcher: TokenFetcher? = nil) {
+    self.tokenFetcher = tokenFetcher
+  }
+
+  public func getToken() throws -> PushToken {
+    guard let tokenFetcher else {
+      throw NotificationError(
+        code: "ERR_PROVIDER_UNCONFIGURED",
+        message: "FCM provider requires Firebase token fetcher wiring."
+      )
+    }
+
+    let token = try tokenFetcher()
+    if token.isEmpty {
+      throw NotificationError(
+        code: "ERR_PROVIDER_UNCONFIGURED",
+        message: "FCM token was empty."
+      )
+    }
+
+    return PushToken(type: "fcm", data: token)
   }
 }

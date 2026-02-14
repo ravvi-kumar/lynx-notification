@@ -232,6 +232,45 @@ describe('notifications core API', () => {
     expect(stopObservingEvents).toHaveBeenCalledTimes(1)
   })
 
+  it('handles nested event payload format from native module', async () => {
+    const onReceived = vi.fn()
+    const subscription = Notifications.addNotificationReceivedListener(onReceived)
+
+    await Promise.resolve()
+
+    eventCallback?.({
+      event: {
+        type: 'notification_received',
+        notification: sampleNotification(),
+      },
+    })
+
+    expect(onReceived).toHaveBeenCalledTimes(1)
+
+    subscription.remove()
+  })
+
+  it('ignores malformed event payloads without crashing listeners', async () => {
+    const onReceived = vi.fn()
+    const subscription = Notifications.addNotificationReceivedListener(onReceived)
+
+    await Promise.resolve()
+
+    eventCallback?.({
+      foo: 'bar',
+    })
+
+    eventCallback?.({
+      event: {
+        type: 'notification_received',
+      },
+    })
+
+    expect(onReceived).not.toHaveBeenCalled()
+
+    subscription.remove()
+  })
+
   it('uses runOnBackground when called from main thread', async () => {
     ;(globalThis as { __MAIN_THREAD__?: boolean }).__MAIN_THREAD__ = true
 

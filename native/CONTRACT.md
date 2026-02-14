@@ -27,3 +27,8 @@ Event payloads emitted by `startObservingEvents` callback:
 - `notification_received`
 - `notification_response`
 - `token_refreshed`
+
+Reference implementations:
+
+- Android: `native/android/core/src/main/java/io/lynx/notifications/core/LynxNotificationsModule.java`
+- iOS: `native/ios/Sources/Core/LynxNotificationsModule.swift`

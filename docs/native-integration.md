@@ -31,9 +31,18 @@ LynxViewBuilder builder = LynxView.builder()
   });
 ```
 
+Helper template: `native/android/core/src/main/java/io/lynx/notifications/core/LynxNotificationsAuthValidator.java`
+
 ## FCM Adapters
 
 - Android adapter template: `native/android/fcm/src/main/java/io/lynx/notifications/fcm/FcmPushTokenProvider.java`
 - iOS adapter template: `native/ios/Sources/FCM/FcmPushTokenProvider.swift`
 
 Replace templates with Firebase token retrieval and callback envelope conversion.
+
+## Scheduler and Permission Templates
+
+- Android local scheduler template: `native/android/core/src/main/java/io/lynx/notifications/core/InMemoryLocalNotificationScheduler.java`
+- Android permission template: `native/android/core/src/main/java/io/lynx/notifications/core/NoopPermissionProvider.java`
+- iOS local scheduler template: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`InMemoryLocalNotificationScheduler`)
+- iOS permission template: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`NoopPermissionProvider`)

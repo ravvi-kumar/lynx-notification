@@ -9,3 +9,12 @@ Expected runtime registration in host app:
 
 - Register `LynxNotificationsModule` into Lynx runtime.
 - If Lynx SDK >= 3.5, attach `registerMethodAuth` to allow only `LynxNotificationsModule` methods.
+
+Core implementation templates:
+
+- `Sources/Core/LynxNotificationsModule.swift`
+- `Sources/Core/LynxNotificationsMethodAuth.swift`
+
+FCM provider template:
+
+- `Sources/FCM/FcmPushTokenProvider.swift`

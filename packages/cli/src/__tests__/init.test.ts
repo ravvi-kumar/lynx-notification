@@ -107,6 +107,25 @@ describe('lynx-notifications init', () => {
     expect(entry).not.toContain('lynx-notifications-bootstrap')
   })
 
+  it('creates manual guidance when --entry path is not found', async () => {
+    const cwd = await makeTempProject()
+    await mkdir(path.join(cwd, 'src'), { recursive: true })
+    await writeLynxPackageJson(cwd)
+
+    const result = await runInitCommand(
+      ['--skip-install', '--entry', 'src/custom-entry.tsx'],
+      cwd,
+      silentLogger,
+    )
+
+    expect(result.entryWired).toBe(false)
+    expect(result.integrationGuidePath).toBeDefined()
+
+    const guide = await readFile(path.join(cwd, '.lynx-notifications', 'integration-guide.md'), 'utf8')
+    expect(guide).toContain('src/custom-entry.tsx')
+    expect(guide).toContain('Manual follow-ups')
+  })
+
   it('rejects non-lynx projects', async () => {
     const cwd = await makeTempProject()
     await writeFile(
