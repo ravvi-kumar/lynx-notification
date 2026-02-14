@@ -73,6 +73,7 @@ export function createAndroidAppGradleSnippet(): string {
   return `dependencies {
   implementation("io.lynx.notifications:core:0.1.0-alpha")
   implementation("io.lynx.notifications:fcm:0.1.0-alpha")
+  implementation("io.lynx.notifications:android-runtime:0.1.0-alpha")
 }
 `
 }
@@ -89,7 +90,7 @@ export function createAndroidRootGradleSnippet(): string {
 export function createAndroidManifestReceiverSnippet(): string {
   return `<!-- Receiver for local notifications scheduled by LynxNotificationsModule -->
 <receiver
-    android:name=".notifications.AndroidNotificationPublisherReceiver"
+    android:name="io.lynx.notifications.android.AndroidNotificationPublisherReceiver"
     android:exported="false" />`
 }
 

@@ -23,17 +23,24 @@ Current target: `0.1.0-alpha`
 9. iOS production adapter implementations:
    - `UNUserNotificationCenterPermissionProvider`
    - `UNUserNotificationCenterLocalNotificationScheduler`
-10. Android production adapter examples:
+10. Android production adapter module:
    - runtime permission bridge
    - AlarmManager scheduler + publish receiver
+   - publishable artifact scaffold at `native/android/runtime`
 11. CLI Android manifest patching for:
     - `android.permission.POST_NOTIFICATIONS`
     - local notification receiver block
+12. Native CI workflow scaffolding:
+    - `.github/workflows/native-artifacts.yml`
+    - native Android publish-to-local checks
+    - native iOS Swift parse checks
+    - host-consumption assemble check from Maven local artifacts
 
 ## Remaining Before “Real Release”
 
-1. Android host production adapters:
-   - integrate example adapters into a publishable Android artifact module
+1. Android runtime artifact:
+   - stabilize and validate `android-runtime` Gradle publish pipeline end-to-end on CI runs
+   - verify host consumption from published remote Maven coordinates (non-local repo)
 2. iOS host production adapters:
    - integration testing of `UNUserNotificationCenter` adapters on physical devices
 3. End-to-end native test execution in CI:

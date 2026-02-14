@@ -1,4 +1,4 @@
-package io.lynx.notifications.example;
+package io.lynx.notifications.android;
 
 import android.Manifest;
 import android.app.Activity;
@@ -14,12 +14,6 @@ import io.lynx.notifications.core.RuntimeNotificationPermissionProvider;
 
 /**
  * Production adapter for Android notification permission state + request flow.
- *
- * Host usage:
- * 1) Create bridge: PermissionRequestBridge bridge = createPermissionRequestBridge(activity);
- * 2) Register Activity Result launcher and forward result to bridge.onPermissionRequestResult(granted).
- * 3) Attach launcher to bridge.
- * 4) Build module permission provider via createPermissionProvider(activity, bridge).
  */
 public final class AndroidNotificationPermissionAdapters {
   private static final String PREFERENCES_FILE = "lynx_notifications";

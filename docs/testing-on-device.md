@@ -21,11 +21,11 @@ Use the host templates:
 
 Provide real Android `InstallationOptions`:
 
-1. Create `PermissionRequestBridge` from `AndroidNotificationPermissionAdapters`
+1. Create `PermissionRequestBridge` from `io.lynx.notifications.android.AndroidNotificationPermissionAdapters`
 2. Register Activity Result `RequestPermission()` callback and forward to `bridge.onPermissionRequestResult(...)`
 3. Build provider via `AndroidNotificationPermissionAdapters.createPermissionProvider(...)`
 4. Use `AndroidAlarmLocalNotificationScheduler(...)`
-5. Register `AndroidNotificationPublisherReceiver` in `AndroidManifest.xml`
+5. Ensure `io.lynx.notifications:android-runtime` is added (CLI patches this dependency)
 
 Android bridge sketch:
 
@@ -43,7 +43,7 @@ LynxNotificationsHostIntegration.InstallationOptions options =
     LynxNotificationsHostIntegration.createDefaultOptions(
         activity,
         bridge,
-        AndroidNotificationPublisherReceiver.class
+        io.lynx.notifications.android.AndroidNotificationPublisherReceiver.class
     );
 ```
 

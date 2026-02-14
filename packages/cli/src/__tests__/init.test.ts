@@ -66,11 +66,23 @@ describe('lynx-notifications init', () => {
     expect(entry).toContain('lynx-notifications-bootstrap')
     expect(entry).toContain("import('./notifications/bootstrap')")
 
+    const appGradleSnippet = await readFile(
+      path.join(cwd, '.lynx-notifications', 'snippets', 'android.app.build.gradle.snippet'),
+      'utf8',
+    )
+    expect(appGradleSnippet).toContain('io.lynx.notifications:android-runtime:0.1.0-alpha')
+
     const manifestPermissionSnippet = await readFile(
       path.join(cwd, '.lynx-notifications', 'snippets', 'android.manifest.permission.snippet'),
       'utf8',
     )
     expect(manifestPermissionSnippet).toContain('android.permission.POST_NOTIFICATIONS')
+
+    const manifestReceiverSnippet = await readFile(
+      path.join(cwd, '.lynx-notifications', 'snippets', 'android.manifest.receiver.snippet'),
+      'utf8',
+    )
+    expect(manifestReceiverSnippet).toContain('io.lynx.notifications.android.AndroidNotificationPublisherReceiver')
   })
 
   it('patches native files and entry idempotently without duplicating marker blocks', async () => {
@@ -109,6 +121,8 @@ describe('lynx-notifications init', () => {
     expect((manifest.match(/<!-- >>> lynx-notifications-permission -->/g) ?? []).length).toBe(1)
     expect((manifest.match(/<!-- >>> lynx-notifications-receiver -->/g) ?? []).length).toBe(1)
     expect((entry.match(/\/\/ >>> lynx-notifications-bootstrap/g) ?? []).length).toBe(1)
+    expect(appGradle).toContain('io.lynx.notifications:android-runtime:0.1.0-alpha')
+    expect(manifest).toContain('io.lynx.notifications.android.AndroidNotificationPublisherReceiver')
   })
 
   it('supports --no-wire-entry', async () => {
@@ -123,6 +137,37 @@ describe('lynx-notifications init', () => {
     expect(result.entryWired).toBe(false)
     expect(result.entryFilePath).toBeUndefined()
     expect(entry).not.toContain('lynx-notifications-bootstrap')
+  })
+
+  it('does not duplicate existing manifest permission or receiver entries without markers', async () => {
+    const cwd = await makeTempProject()
+
+    await writeLynxPackageJson(cwd)
+    await mkdir(path.join(cwd, 'src'), { recursive: true })
+    await writeFile(path.join(cwd, 'src', 'index.tsx'), 'console.info("entry")\n', 'utf8')
+    await mkdir(path.join(cwd, 'android', 'app', 'src', 'main'), { recursive: true })
+    await writeFile(path.join(cwd, 'android', 'app', 'build.gradle'), 'plugins {}\n', 'utf8')
+    await writeFile(path.join(cwd, 'android', 'build.gradle'), 'allprojects {}\n', 'utf8')
+    await writeFile(
+      path.join(cwd, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'),
+      `<manifest package="com.example.app">
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <application>
+    <receiver
+      android:name="io.lynx.notifications.android.AndroidNotificationPublisherReceiver"
+      android:exported="false" />
+  </application>
+</manifest>
+`,
+      'utf8',
+    )
+
+    await runInitCommand(['--skip-install', '--platform', 'android'], cwd, silentLogger)
+    await runInitCommand(['--skip-install', '--platform', 'android'], cwd, silentLogger)
+
+    const manifest = await readFile(path.join(cwd, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8')
+    expect((manifest.match(/android\.permission\.POST_NOTIFICATIONS/g) ?? []).length).toBe(1)
+    expect((manifest.match(/io\.lynx\.notifications\.android\.AndroidNotificationPublisherReceiver/g) ?? []).length).toBe(1)
   })
 
   it('creates manual guidance when --entry path is not found', async () => {

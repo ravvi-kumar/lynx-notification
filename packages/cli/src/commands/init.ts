@@ -312,6 +312,10 @@ ${ANDROID_MANIFEST_PERMISSION_MARKERS.end}`
     })
   }
 
+  if (normalizedSource.includes('android.permission.POST_NOTIFICATIONS')) {
+    return `${normalizedSource}\n`
+  }
+
   const applicationOpenPattern = /^(\s*)<application(?:\s|>)/m
   const match = normalizedSource.match(applicationOpenPattern)
   if (match) {
@@ -343,6 +347,10 @@ ${ANDROID_MANIFEST_RECEIVER_MARKERS.end}`
       endMarker: ANDROID_MANIFEST_RECEIVER_MARKERS.end,
       content: createAndroidManifestReceiverSnippet().trimEnd(),
     })
+  }
+
+  if (normalizedSource.includes('io.lynx.notifications.android.AndroidNotificationPublisherReceiver')) {
+    return `${normalizedSource}\n`
   }
 
   const applicationClosePattern = /^(\s*)<\/application>/m

@@ -3,10 +3,15 @@
 This folder contains copy-ready integration snippets for host apps embedding Lynx.
 
 - Android: `android/LynxNotificationsHostIntegration.java`
-- Android permission adapter: `android/AndroidNotificationPermissionAdapters.java`
-- Android scheduler: `android/AndroidAlarmLocalNotificationScheduler.java`
-- Android receiver: `android/AndroidNotificationPublisherReceiver.java`
 - iOS: `ios/LynxNotificationsHostIntegration.swift`
+
+Android runtime adapters are now published from:
+
+- `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPermissionAdapters.java`
+- `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidAlarmLocalNotificationScheduler.java`
+- `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPublisherReceiver.java`
+
+Use Maven dependency: `implementation("io.lynx.notifications:android-runtime:0.1.0-alpha")`
 
 These examples show how to:
 
@@ -21,8 +26,8 @@ The default `FcmPushTokenProvider()` in both examples expects Firebase Messaging
 
 Android `InstallationOptions` requires:
 
-1. `permissionProvider`: create with `AndroidNotificationPermissionAdapters.createPermissionProvider(...)`
-2. `scheduler`: use `AndroidAlarmLocalNotificationScheduler(...)`
+1. `permissionProvider`: create with `io.lynx.notifications.android.AndroidNotificationPermissionAdapters.createPermissionProvider(...)`
+2. `scheduler`: use `io.lynx.notifications.android.AndroidAlarmLocalNotificationScheduler(...)`
 
 iOS `InstallationOptions` defaults to production adapters:
 
@@ -31,4 +36,5 @@ iOS `InstallationOptions` defaults to production adapters:
 
 Android manifest note:
 
-1. Register `AndroidNotificationPublisherReceiver` in `AndroidManifest.xml`
+1. Receiver is declared by `io.lynx.notifications:android-runtime` library manifest.
+2. CLI still patches a receiver block in host `AndroidManifest.xml` for deterministic setup.

@@ -1,13 +1,19 @@
-name: Release Alpha
+name: Native Artifacts
 
 on:
+  push:
+    paths:
+      - 'native/**'
+      - '.github/workflows/native-artifacts.yml'
+  pull_request:
+    paths:
+      - 'native/**'
+      - '.github/workflows/native-artifacts.yml'
   workflow_dispatch:
 
 jobs:
-  validate-native-android:
+  android-native:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -84,10 +90,8 @@ jobs:
           EOF
           gradle -p /tmp/lynx-host-check assembleDebug
 
-  validate-native-ios:
+  ios-native:
     runs-on: macos-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Swift Parse Check
@@ -101,32 +105,3 @@ jobs:
             native/ios/Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift \
             native/ios/Sources/FCM/FcmPushTokenProvider.swift \
             native/ios/Tests/Core/LynxNotificationsModuleTests.swift
-
-  publish:
-    needs:
-      - validate-native-android
-      - validate-native-ios
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org
-          cache: npm
-      - name: Install dependencies
-        run: npm install
-      - name: Validate
-        run: |
-          npm run test:packages
-          npm run build:packages
-      - name: Publish @lynx-notifications/core (alpha)
-        run: npm publish --workspace @lynx-notifications/core --tag alpha --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish lynx-notifications CLI (alpha)
-        run: npm publish --workspace lynx-notifications --tag alpha --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

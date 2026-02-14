@@ -1,4 +1,4 @@
-package io.lynx.notifications.example;
+package io.lynx.notifications.android;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -13,8 +13,6 @@ import androidx.core.app.NotificationManagerCompat;
 
 /**
  * BroadcastReceiver that displays scheduled local notifications.
- *
- * Register this receiver in AndroidManifest.xml.
  */
 public class AndroidNotificationPublisherReceiver extends BroadcastReceiver {
   @Override

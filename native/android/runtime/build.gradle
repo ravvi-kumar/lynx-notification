@@ -7,7 +7,7 @@ group = 'io.lynx.notifications'
 version = '0.1.0-alpha'
 
 android {
-  namespace 'io.lynx.notifications.fcm'
+  namespace 'io.lynx.notifications.android'
   compileSdk 34
 
   defaultConfig {
@@ -34,16 +34,17 @@ repositories {
 }
 
 dependencies {
-  implementation 'io.lynx.notifications:core:0.1.0-alpha'
-  implementation 'com.google.firebase:firebase-messaging:24.0.0'
+  api 'io.lynx.notifications:core:0.1.0-alpha'
+  implementation 'androidx.activity:activity:1.9.3'
+  implementation 'androidx.core:core:1.15.0'
 }
 
 afterEvaluate {
   publishing {
     publications {
-      fcm(MavenPublication) {
+      runtime(MavenPublication) {
         groupId = 'io.lynx.notifications'
-        artifactId = 'fcm'
+        artifactId = 'android-runtime'
         version = project.version
         from components.release
       }

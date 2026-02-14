@@ -24,9 +24,9 @@ Native host examples:
 - `examples/native-host/android/LynxNotificationsHostIntegration.java`
 - `examples/native-host/ios/LynxNotificationsHostIntegration.swift`
 - Android adapters:
-  - `examples/native-host/android/AndroidNotificationPermissionAdapters.java`
-  - `examples/native-host/android/AndroidAlarmLocalNotificationScheduler.java`
-  - `examples/native-host/android/AndroidNotificationPublisherReceiver.java`
+  - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPermissionAdapters.java`
+  - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidAlarmLocalNotificationScheduler.java`
+  - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPublisherReceiver.java`
 
 Device validation checklist:
 

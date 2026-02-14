@@ -61,8 +61,9 @@ Installer helper template: `native/android/core/src/main/java/io/lynx/notificati
 For production behavior, pass real host adapters through `InstallationOptions`:
 
 1. Android:
-   - `NotificationPermissionProvider` from `examples/native-host/android/AndroidNotificationPermissionAdapters.java`
-   - `LocalNotificationScheduler` from `examples/native-host/android/AndroidAlarmLocalNotificationScheduler.java`
+   - add dependency: `implementation("io.lynx.notifications:android-runtime:0.1.0-alpha")`
+   - `NotificationPermissionProvider` from `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPermissionAdapters.java`
+   - `LocalNotificationScheduler` from `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidAlarmLocalNotificationScheduler.java`
 2. iOS:
    - `UNUserNotificationCenterPermissionProvider` (`native/ios/Sources/Core/UNUserNotificationCenterPermissionProvider.swift`)
    - `UNUserNotificationCenterLocalNotificationScheduler` (`native/ios/Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift`)
@@ -83,9 +84,9 @@ Both templates are callback-based and include Firebase wiring entry points. Repl
   - `native/android/core/src/main/java/io/lynx/notifications/core/NoopPermissionProvider.java`
   - `native/android/core/src/main/java/io/lynx/notifications/core/RuntimeNotificationPermissionProvider.java`
 - Android production examples:
-  - `examples/native-host/android/AndroidAlarmLocalNotificationScheduler.java`
-  - `examples/native-host/android/AndroidNotificationPermissionAdapters.java`
-  - `examples/native-host/android/AndroidNotificationPublisherReceiver.java`
+  - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidAlarmLocalNotificationScheduler.java`
+  - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPermissionAdapters.java`
+  - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPublisherReceiver.java`
 - iOS local scheduler templates:
   - `native/ios/Sources/Core/LynxNotificationsModule.swift` (`InMemoryLocalNotificationScheduler`)
   - `native/ios/Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift`

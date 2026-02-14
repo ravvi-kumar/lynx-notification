@@ -2,6 +2,8 @@ package io.lynx.notifications.example;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import io.lynx.notifications.android.AndroidAlarmLocalNotificationScheduler;
+import io.lynx.notifications.android.AndroidNotificationPermissionAdapters;
 import io.lynx.notifications.core.LynxNotificationsInstaller;
 import io.lynx.notifications.core.LynxNotificationsModule;
 import io.lynx.notifications.core.LynxNotificationsEventForwarder;

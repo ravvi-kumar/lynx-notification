@@ -1,4 +1,4 @@
-package io.lynx.notifications.example;
+package io.lynx.notifications.android;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
