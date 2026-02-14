@@ -27,11 +27,31 @@ public final class LynxNotificationsModule {
   }
 
   public void getPermissions(MethodCallback callback) {
-    callback.resolve(NativeResult.ok(permissionProvider.getPermissions().toMap()));
+    permissionProvider.getPermissions(new NotificationPermissionProvider.PermissionsCallback() {
+      @Override
+      public void onSuccess(NotificationPermissions permissions) {
+        callback.resolve(NativeResult.ok(permissions.toMap()));
+      }
+
+      @Override
+      public void onError(NotificationError error) {
+        callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
+      }
+    });
   }
 
   public void requestPermissions(MethodCallback callback) {
-    callback.resolve(NativeResult.ok(permissionProvider.requestPermissions().toMap()));
+    permissionProvider.requestPermissions(new NotificationPermissionProvider.PermissionsCallback() {
+      @Override
+      public void onSuccess(NotificationPermissions permissions) {
+        callback.resolve(NativeResult.ok(permissions.toMap()));
+      }
+
+      @Override
+      public void onError(NotificationError error) {
+        callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
+      }
+    });
   }
 
   public void getPushToken(String provider, MethodCallback callback) {
@@ -58,26 +78,45 @@ public final class LynxNotificationsModule {
   }
 
   public void scheduleNotification(Map<String, Object> request, MethodCallback callback) {
-    try {
-      String id = scheduler.schedule(request);
-      callback.resolve(NativeResult.ok(id));
-    } catch (NotificationError error) {
-      callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
-    }
+    scheduler.schedule(request, new LocalNotificationScheduler.ScheduleCallback() {
+      @Override
+      public void onSuccess(String id) {
+        callback.resolve(NativeResult.ok(id));
+      }
+
+      @Override
+      public void onError(NotificationError error) {
+        callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
+      }
+    });
   }
 
   public void cancelScheduledNotification(String id, MethodCallback callback) {
-    try {
-      scheduler.cancel(id);
-      callback.resolve(NativeResult.ok(null));
-    } catch (NotificationError error) {
-      callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
-    }
+    scheduler.cancel(id, new LocalNotificationScheduler.VoidCallback() {
+      @Override
+      public void onSuccess() {
+        callback.resolve(NativeResult.ok(null));
+      }
+
+      @Override
+      public void onError(NotificationError error) {
+        callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
+      }
+    });
   }
 
   public void cancelAllScheduledNotifications(MethodCallback callback) {
-    scheduler.cancelAll();
-    callback.resolve(NativeResult.ok(null));
+    scheduler.cancelAll(new LocalNotificationScheduler.VoidCallback() {
+      @Override
+      public void onSuccess() {
+        callback.resolve(NativeResult.ok(null));
+      }
+
+      @Override
+      public void onError(NotificationError error) {
+        callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
+      }
+    });
   }
 
   public void getLastNotificationResponse(MethodCallback callback) {

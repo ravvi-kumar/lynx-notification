@@ -81,4 +81,75 @@ public class LynxNotificationsModuleTest {
     Map<String, Object> error = (Map<String, Object>) payload.get().get("error");
     assertEquals("ERR_INVALID_ARGUMENT", error.get("code"));
   }
+
+  @Test
+  public void mapsRuntimePermissionDeniedState() {
+    NotificationPermissionProvider permissionProvider = new RuntimeNotificationPermissionProvider(
+        new RuntimeNotificationPermissionProvider.PermissionStateReader() {
+          @Override
+          public boolean isGranted() {
+            return false;
+          }
+
+          @Override
+          public boolean canAskAgain() {
+            return false;
+          }
+        },
+        callback -> callback.onResult(false)
+    );
+
+    LynxNotificationsModule module = new LynxNotificationsModule(
+        permissionProvider,
+        new PushTokenProviderRegistry(),
+        new InMemoryLocalNotificationScheduler()
+    );
+
+    AtomicReference<Map<String, Object>> payload = new AtomicReference<>();
+    module.requestPermissions(payload::set);
+
+    assertNotNull(payload.get());
+    assertTrue((Boolean) payload.get().get("ok"));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> data = (Map<String, Object>) payload.get().get("data");
+    assertEquals("denied", data.get("status"));
+    assertEquals(false, data.get("granted"));
+    assertEquals(false, data.get("canAskAgain"));
+  }
+
+  @Test
+  public void mapsRuntimePermissionRequestFailureToNativeFailure() {
+    NotificationPermissionProvider permissionProvider = new RuntimeNotificationPermissionProvider(
+        new RuntimeNotificationPermissionProvider.PermissionStateReader() {
+          @Override
+          public boolean isGranted() {
+            return false;
+          }
+
+          @Override
+          public boolean canAskAgain() {
+            return true;
+          }
+        },
+        callback -> callback.onFailure(new IllegalStateException("boom"))
+    );
+
+    LynxNotificationsModule module = new LynxNotificationsModule(
+        permissionProvider,
+        new PushTokenProviderRegistry(),
+        new InMemoryLocalNotificationScheduler()
+    );
+
+    AtomicReference<Map<String, Object>> payload = new AtomicReference<>();
+    module.requestPermissions(payload::set);
+
+    assertNotNull(payload.get());
+    assertFalse((Boolean) payload.get().get("ok"));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> error = (Map<String, Object>) payload.get().get("error");
+    assertEquals("ERR_NATIVE_FAILURE", error.get("code"));
+    assertEquals("boom", error.get("message"));
+  }
 }

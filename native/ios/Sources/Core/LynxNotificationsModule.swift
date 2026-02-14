@@ -21,12 +21,26 @@ public final class LynxNotificationsModule {
     self.scheduler = scheduler
   }
 
-  public func getPermissions(_ callback: MethodCallback) {
-    callback(NativeResult.ok(permissionProvider.getPermissions().toDictionary).asDictionary())
+  public func getPermissions(_ callback: @escaping MethodCallback) {
+    permissionProvider.getPermissions { result in
+      switch result {
+      case let .success(permissions):
+        callback(NativeResult.ok(permissions.toDictionary).asDictionary())
+      case let .failure(error):
+        callback(error.toNativeResult.asDictionary())
+      }
+    }
   }
 
-  public func requestPermissions(_ callback: MethodCallback) {
-    callback(NativeResult.ok(permissionProvider.requestPermissions().toDictionary).asDictionary())
+  public func requestPermissions(_ callback: @escaping MethodCallback) {
+    permissionProvider.requestPermissions { result in
+      switch result {
+      case let .success(permissions):
+        callback(NativeResult.ok(permissions.toDictionary).asDictionary())
+      case let .failure(error):
+        callback(error.toNativeResult.asDictionary())
+      }
+    }
   }
 
   public func getPushToken(provider: String, callback: @escaping MethodCallback) {
@@ -50,27 +64,37 @@ public final class LynxNotificationsModule {
     }
   }
 
-  public func scheduleNotification(request: [String: Any], callback: MethodCallback) {
-    do {
-      let id = try scheduler.schedule(request: request)
-      callback(NativeResult.ok(id).asDictionary())
-    } catch {
-      callback(NotificationError.from(error).toNativeResult.asDictionary())
+  public func scheduleNotification(request: [String: Any], callback: @escaping MethodCallback) {
+    scheduler.schedule(request: request) { result in
+      switch result {
+      case let .success(id):
+        callback(NativeResult.ok(id).asDictionary())
+      case let .failure(error):
+        callback(error.toNativeResult.asDictionary())
+      }
     }
   }
 
-  public func cancelScheduledNotification(id: String, callback: MethodCallback) {
-    do {
-      try scheduler.cancel(id: id)
-      callback(NativeResult.ok(nil).asDictionary())
-    } catch {
-      callback(NotificationError.from(error).toNativeResult.asDictionary())
+  public func cancelScheduledNotification(id: String, callback: @escaping MethodCallback) {
+    scheduler.cancel(id: id) { result in
+      switch result {
+      case .success:
+        callback(NativeResult.ok(nil).asDictionary())
+      case let .failure(error):
+        callback(error.toNativeResult.asDictionary())
+      }
     }
   }
 
-  public func cancelAllScheduledNotifications(_ callback: MethodCallback) {
-    scheduler.cancelAll()
-    callback(NativeResult.ok(nil).asDictionary())
+  public func cancelAllScheduledNotifications(_ callback: @escaping MethodCallback) {
+    scheduler.cancelAll { result in
+      switch result {
+      case .success:
+        callback(NativeResult.ok(nil).asDictionary())
+      case let .failure(error):
+        callback(error.toNativeResult.asDictionary())
+      }
+    }
   }
 
   public func getLastNotificationResponse(_ callback: MethodCallback) {
@@ -135,19 +159,70 @@ public final class LynxNotificationsModule {
 }
 
 public protocol NotificationPermissionProvider {
-  func getPermissions() -> NotificationPermissions
-  func requestPermissions() -> NotificationPermissions
+  func getPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void)
+  func requestPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void)
 }
 
 public final class NoopPermissionProvider: NotificationPermissionProvider {
   public init() {}
 
-  public func getPermissions() -> NotificationPermissions {
-    NotificationPermissions(status: "undetermined", granted: false, canAskAgain: true)
+  public func getPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void) {
+    completion(.success(NotificationPermissions(status: "undetermined", granted: false, canAskAgain: true)))
   }
 
-  public func requestPermissions() -> NotificationPermissions {
-    NotificationPermissions(status: "granted", granted: true, canAskAgain: true)
+  public func requestPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void) {
+    completion(.success(NotificationPermissions(status: "granted", granted: true, canAskAgain: true)))
+  }
+}
+
+public final class RuntimeNotificationPermissionProvider: NotificationPermissionProvider {
+  public typealias PermissionStateReader = () -> (granted: Bool, canAskAgain: Bool)
+  public typealias PermissionRequestLauncher = (@escaping (Result<Bool, Error>) -> Void) -> Void
+
+  private let stateReader: PermissionStateReader
+  private let requestLauncher: PermissionRequestLauncher?
+
+  public init(
+    stateReader: @escaping PermissionStateReader,
+    requestLauncher: PermissionRequestLauncher? = nil
+  ) {
+    self.stateReader = stateReader
+    self.requestLauncher = requestLauncher
+  }
+
+  public func getPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void) {
+    let state = stateReader()
+    completion(.success(snapshot(granted: state.granted, canAskAgain: state.canAskAgain)))
+  }
+
+  public func requestPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void) {
+    guard let requestLauncher else {
+      let state = stateReader()
+      completion(.success(snapshot(granted: state.granted, canAskAgain: state.canAskAgain)))
+      return
+    }
+
+    requestLauncher { result in
+      switch result {
+      case let .success(granted):
+        let state = self.stateReader()
+        completion(.success(self.snapshot(granted: granted, canAskAgain: state.canAskAgain)))
+      case let .failure(error):
+        completion(.failure(NotificationError.from(error)))
+      }
+    }
+  }
+
+  private func snapshot(granted: Bool, canAskAgain: Bool) -> NotificationPermissions {
+    if granted {
+      return NotificationPermissions(status: "granted", granted: true, canAskAgain: canAskAgain)
+    }
+
+    if canAskAgain {
+      return NotificationPermissions(status: "undetermined", granted: false, canAskAgain: true)
+    }
+
+    return NotificationPermissions(status: "denied", granted: false, canAskAgain: false)
   }
 }
 
@@ -207,9 +282,9 @@ public final class PushToken {
 }
 
 public protocol LocalNotificationScheduler {
-  func schedule(request: [String: Any]) throws -> String
-  func cancel(id: String) throws
-  func cancelAll()
+  func schedule(request: [String: Any], completion: @escaping (Result<String, NotificationError>) -> Void)
+  func cancel(id: String, completion: @escaping (Result<Void, NotificationError>) -> Void)
+  func cancelAll(_ completion: @escaping (Result<Void, NotificationError>) -> Void)
 }
 
 public final class InMemoryLocalNotificationScheduler: LocalNotificationScheduler {
@@ -217,7 +292,37 @@ public final class InMemoryLocalNotificationScheduler: LocalNotificationSchedule
 
   public init() {}
 
-  public func schedule(request: [String: Any]) throws -> String {
+  public func schedule(
+    request: [String: Any],
+    completion: @escaping (Result<String, NotificationError>) -> Void
+  ) {
+    do {
+      let id = try validateAndSchedule(request: request)
+      completion(.success(id))
+    } catch {
+      completion(.failure(NotificationError.from(error)))
+    }
+  }
+
+  public func cancel(id: String, completion: @escaping (Result<Void, NotificationError>) -> Void) {
+    do {
+      if id.isEmpty {
+        throw NotificationError(code: "ERR_INVALID_ARGUMENT", message: "Scheduled notification id must not be empty.")
+      }
+
+      scheduledRequests.removeValue(forKey: id)
+      completion(.success(()))
+    } catch {
+      completion(.failure(NotificationError.from(error)))
+    }
+  }
+
+  public func cancelAll(_ completion: @escaping (Result<Void, NotificationError>) -> Void) {
+    scheduledRequests.removeAll()
+    completion(.success(()))
+  }
+
+  private func validateAndSchedule(request: [String: Any]) throws -> String {
     if let trigger = request["trigger"], !(trigger is NSNull), !(trigger is [String: Any]) {
       throw NotificationError(code: "ERR_INVALID_ARGUMENT", message: "Notification trigger must be null or object.")
     }
@@ -243,18 +348,6 @@ public final class InMemoryLocalNotificationScheduler: LocalNotificationSchedule
     let id = "notification-\(UUID().uuidString.lowercased())"
     scheduledRequests[id] = request
     return id
-  }
-
-  public func cancel(id: String) throws {
-    if id.isEmpty {
-      throw NotificationError(code: "ERR_INVALID_ARGUMENT", message: "Scheduled notification id must not be empty.")
-    }
-
-    scheduledRequests.removeValue(forKey: id)
-  }
-
-  public func cancelAll() {
-    scheduledRequests.removeAll()
   }
 }
 

@@ -10,3 +10,12 @@ Notifications.addNotificationReceivedListener(notification => {
   console.info(notification)
 })
 ```
+
+It also exports a local notification smoke test helper:
+
+```ts
+import { runLocalNotificationSmokeTest } from './src/demo'
+
+const requestId = await runLocalNotificationSmokeTest()
+console.info(requestId)
+```

@@ -1,7 +1,13 @@
 package io.lynx.notifications.core;
 
 public interface NotificationPermissionProvider {
-  NotificationPermissions getPermissions();
+  void getPermissions(PermissionsCallback callback);
 
-  NotificationPermissions requestPermissions();
+  void requestPermissions(PermissionsCallback callback);
+
+  interface PermissionsCallback {
+    void onSuccess(NotificationPermissions permissions);
+
+    void onError(NotificationError error);
+  }
 }

@@ -6,6 +6,12 @@ Register native module name: `LynxNotificationsModule`
 
 Contract reference: `native/CONTRACT.md`
 Host integration examples: `examples/native-host/`
+Device test flow: `docs/testing-on-device.md`
+
+Production-ready host constructors:
+
+- Android: `examples/native-host/android/LynxNotificationsHostIntegration.java` (`InstallationOptions`)
+- iOS: `examples/native-host/ios/LynxNotificationsHostIntegration.swift` (`InstallationOptions`)
 
 ## iOS Registration
 
@@ -50,6 +56,16 @@ Installer helper template: `native/android/core/src/main/java/io/lynx/notificati
 - `emitNotificationResponse`
 - `emitTokenRefreshed`
 
+## Production Wiring Inputs
+
+For production behavior, pass real host adapters through `InstallationOptions`:
+
+1. `permissionStateReader`
+2. `permissionRequestLauncher`
+3. `scheduler`
+
+Do not use `NoopPermissionProvider` or in-memory scheduler in release builds.
+
 ## FCM Adapters
 
 - Android adapter template: `native/android/fcm/src/main/java/io/lynx/notifications/fcm/FcmPushTokenProvider.java`
@@ -60,9 +76,11 @@ Both templates are callback-based and include Firebase wiring entry points. Repl
 ## Scheduler and Permission Templates
 
 - Android local scheduler template: `native/android/core/src/main/java/io/lynx/notifications/core/InMemoryLocalNotificationScheduler.java`
-- Android permission template: `native/android/core/src/main/java/io/lynx/notifications/core/NoopPermissionProvider.java`
+- Android permission templates:
+  - `native/android/core/src/main/java/io/lynx/notifications/core/NoopPermissionProvider.java`
+  - `native/android/core/src/main/java/io/lynx/notifications/core/RuntimeNotificationPermissionProvider.java`
 - iOS local scheduler template: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`InMemoryLocalNotificationScheduler`)
-- iOS permission template: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`NoopPermissionProvider`)
+- iOS permission templates: `native/ios/Sources/Core/LynxNotificationsModule.swift` (`NoopPermissionProvider`, `RuntimeNotificationPermissionProvider`)
 
 ## Event Forwarders
 

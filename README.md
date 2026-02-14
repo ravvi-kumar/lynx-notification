@@ -19,6 +19,8 @@ npx lynx-notifications init --provider fcm --platform ios,android
 
 - `/docs/quick-start.md`
 - `/docs/native-integration.md`
+- `/docs/testing-on-device.md`
+- `/docs/release-readiness.md`
 
 ## Commands
 

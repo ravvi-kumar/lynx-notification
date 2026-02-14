@@ -8,7 +8,36 @@ public final class InMemoryLocalNotificationScheduler implements LocalNotificati
   private final Map<String, Map<String, Object>> scheduledRequests = new HashMap<>();
 
   @Override
-  public String schedule(Map<String, Object> request) throws NotificationError {
+  public void schedule(Map<String, Object> request, ScheduleCallback callback) {
+    try {
+      String id = validateAndSchedule(request);
+      callback.onSuccess(id);
+    } catch (NotificationError error) {
+      callback.onError(error);
+    }
+  }
+
+  @Override
+  public void cancel(String id, VoidCallback callback) {
+    try {
+      if (id == null || id.isEmpty()) {
+        throw new NotificationError("ERR_INVALID_ARGUMENT", "Scheduled notification id must not be empty.");
+      }
+
+      scheduledRequests.remove(id);
+      callback.onSuccess();
+    } catch (NotificationError error) {
+      callback.onError(error);
+    }
+  }
+
+  @Override
+  public void cancelAll(VoidCallback callback) {
+    scheduledRequests.clear();
+    callback.onSuccess();
+  }
+
+  private String validateAndSchedule(Map<String, Object> request) throws NotificationError {
     Object triggerValue = request.get("trigger");
     if (!(triggerValue == null || triggerValue instanceof Map)) {
       throw new NotificationError(
@@ -44,19 +73,5 @@ public final class InMemoryLocalNotificationScheduler implements LocalNotificati
     String id = "notification-" + UUID.randomUUID();
     scheduledRequests.put(id, request);
     return id;
-  }
-
-  @Override
-  public void cancel(String id) throws NotificationError {
-    if (id == null || id.isEmpty()) {
-      throw new NotificationError("ERR_INVALID_ARGUMENT", "Scheduled notification id must not be empty.");
-    }
-
-    scheduledRequests.remove(id);
-  }
-
-  @Override
-  public void cancelAll() {
-    scheduledRequests.clear();
   }
 }

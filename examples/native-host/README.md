@@ -13,3 +13,13 @@ These examples show how to:
 4. Forward host push events via `LynxNotificationsEventForwarder`
 
 The default `FcmPushTokenProvider()` in both examples expects Firebase Messaging SDK to be linked.
+
+## Required Host Inputs
+
+Both examples now require an `InstallationOptions` object so host apps can wire real platform behavior:
+
+1. `permissionStateReader`: returns current notifications permission + canAskAgain state
+2. `permissionRequestLauncher`: launches runtime permission request and returns granted/denied
+3. `scheduler`: schedules/cancels local notifications using host platform APIs
+
+This keeps the shared package provider-agnostic while still supporting production native behavior.

@@ -24,6 +24,10 @@ Native host examples:
 - `examples/native-host/android/LynxNotificationsHostIntegration.java`
 - `examples/native-host/ios/LynxNotificationsHostIntegration.swift`
 
+Device validation checklist:
+
+- `docs/testing-on-device.md`
+
 ## Use in App Code
 
 ```ts

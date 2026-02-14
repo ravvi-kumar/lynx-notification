@@ -1,13 +1,50 @@
 import Foundation
 
 public enum LynxNotificationsHostIntegration {
+  public struct InstallationOptions {
+    public let permissionStateReader: RuntimeNotificationPermissionProvider.PermissionStateReader
+    public let permissionRequestLauncher: RuntimeNotificationPermissionProvider.PermissionRequestLauncher?
+    public let scheduler: LocalNotificationScheduler
+
+    public init(
+      permissionStateReader: @escaping RuntimeNotificationPermissionProvider.PermissionStateReader,
+      permissionRequestLauncher: RuntimeNotificationPermissionProvider.PermissionRequestLauncher?,
+      scheduler: LocalNotificationScheduler
+    ) {
+      self.permissionStateReader = permissionStateReader
+      self.permissionRequestLauncher = permissionRequestLauncher
+      self.scheduler = scheduler
+    }
+  }
+
+  public struct Installation {
+    public let module: LynxNotificationsModule
+    public let events: LynxNotificationsEventForwarder
+
+    public init(module: LynxNotificationsModule, events: LynxNotificationsEventForwarder) {
+      self.module = module
+      self.events = events
+    }
+  }
+
   public static func install(
     moduleRegistrar: LynxNotificationsInstaller.ModuleRegistrar,
-    methodAuthRegistrar: LynxNotificationsInstaller.MethodAuthRegistrar
-  ) {
-    let provider = FcmPushTokenProvider()
+    methodAuthRegistrar: LynxNotificationsInstaller.MethodAuthRegistrar,
+    options: InstallationOptions
+  ) -> Installation {
+    let permissionProvider = RuntimeNotificationPermissionProvider(
+      stateReader: options.permissionStateReader,
+      requestLauncher: options.permissionRequestLauncher
+    )
 
-    let module = LynxNotificationsModule.createDefault(fcmProvider: provider)
+    let providers = PushTokenProviderRegistry()
+    providers.register(name: "fcm", provider: FcmPushTokenProvider())
+
+    let module = LynxNotificationsModule(
+      permissionProvider: permissionProvider,
+      pushProviders: providers,
+      scheduler: options.scheduler
+    )
     let eventForwarder = LynxNotificationsEventForwarder(module: module)
 
     LynxNotificationsInstaller.install(
@@ -16,10 +53,6 @@ public enum LynxNotificationsHostIntegration {
       module: module
     )
 
-    // Wire your host push callbacks:
-    // eventForwarder.onForegroundNotificationReceived(notification: ...)
-    // eventForwarder.onNotificationResponse(response: ...)
-    // eventForwarder.onTokenRefreshed(token: ...)
-    _ = eventForwarder
+    return Installation(module: module, events: eventForwarder)
   }
 }

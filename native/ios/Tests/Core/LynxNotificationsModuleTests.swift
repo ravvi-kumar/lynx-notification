@@ -2,6 +2,33 @@ import Foundation
 import XCTest
 
 final class LynxNotificationsModuleTests: XCTestCase {
+  func testRuntimePermissionDeniedMapping() {
+    let module = LynxNotificationsModule(
+      permissionProvider: RuntimeNotificationPermissionProvider(
+        stateReader: { (granted: false, canAskAgain: false) },
+        requestLauncher: { completion in
+          completion(.success(false))
+        }
+      ),
+      pushProviders: PushTokenProviderRegistry(),
+      scheduler: InMemoryLocalNotificationScheduler()
+    )
+
+    let expectation = expectation(description: "permission callback")
+    module.requestPermissions { payload in
+      let ok = payload["ok"] as? Bool
+      XCTAssertEqual(ok, true)
+
+      let data = payload["data"] as? [String: Any]
+      XCTAssertEqual(data?["status"] as? String, "denied")
+      XCTAssertEqual(data?["granted"] as? Bool, false)
+      XCTAssertEqual(data?["canAskAgain"] as? Bool, false)
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 1)
+  }
+
   func testPushTokenSuccess() {
     let providers = PushTokenProviderRegistry()
     providers.register(name: "fcm", provider: FakePushTokenProvider(result: .success(PushToken(type: "fcm", data: "token-123"))))
@@ -40,6 +67,33 @@ final class LynxNotificationsModuleTests: XCTestCase {
 
       let error = payload["error"] as? [String: Any]
       XCTAssertEqual(error?["code"] as? String, "ERR_PROVIDER_UNCONFIGURED")
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 1)
+  }
+
+  func testSchedulePastDateReturnsInvalidArgument() {
+    let module = LynxNotificationsModule(
+      permissionProvider: NoopPermissionProvider(),
+      pushProviders: PushTokenProviderRegistry(),
+      scheduler: InMemoryLocalNotificationScheduler()
+    )
+
+    let request: [String: Any] = [
+      "trigger": [
+        "type": "date",
+        "date": NSNumber(value: Date().timeIntervalSince1970 * 1000 - 1000),
+      ],
+    ]
+
+    let expectation = expectation(description: "schedule callback")
+    module.scheduleNotification(request: request) { payload in
+      let ok = payload["ok"] as? Bool
+      XCTAssertEqual(ok, false)
+
+      let error = payload["error"] as? [String: Any]
+      XCTAssertEqual(error?["code"] as? String, "ERR_INVALID_ARGUMENT")
       expectation.fulfill()
     }
 
