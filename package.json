@@ -16,6 +16,8 @@
     "lint": "eslint .",
     "preview": "rspeedy preview",
     "release:alpha:dry-run": "npm publish --workspace @lynx-notifications/core --tag alpha --access public --dry-run && npm publish --workspace lynx-notifications --tag alpha --access public --dry-run",
+    "release:preflight": "node scripts/release-preflight.mjs",
+    "release:preflight:publish": "node scripts/release-preflight.mjs --publish",
     "test": "vitest run",
     "test:native:android:instrumentation:compile": "gradle -p native/android :runtime:assembleDebugAndroidTest",
     "test:native:android:unit": "gradle -p native/android :core:test",

@@ -1,6 +1,10 @@
 import Foundation
 
 public enum LynxNotificationsInstaller {
+  public static func setDebugLoggingEnabled(_ enabled: Bool) {
+    LynxNotificationsLogger.setDebugEnabled(enabled)
+  }
+
   public static func install(
     moduleRegistrar: ModuleRegistrar,
     methodAuthRegistrar: MethodAuthRegistrar,

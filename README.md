@@ -21,6 +21,7 @@ npx lynx-notifications init --provider fcm --platform ios,android
 - `/docs/native-integration.md`
 - `/docs/testing-on-device.md`
 - `/docs/release-readiness.md`
+- `/docs/real-release-checklist.md`
 
 ## Commands
 
@@ -33,6 +34,8 @@ npm run build:packages
 npm run test:packages
 npm run typecheck:packages
 npm run validate:release-config
+npm run release:preflight
+npm run release:preflight:publish
 npm run test:native:ios
 npm run test:native:android:unit
 ```

@@ -27,6 +27,7 @@ public final class LynxNotificationsModule {
       case let .success(permissions):
         callback(NativeResult.ok(permissions.toDictionary).asDictionary())
       case let .failure(error):
+        LynxNotificationsLogger.error("getPermissions failed with code=\(error.code) message=\(error.message)")
         callback(error.toNativeResult.asDictionary())
       }
     }
@@ -36,8 +37,10 @@ public final class LynxNotificationsModule {
     permissionProvider.requestPermissions { result in
       switch result {
       case let .success(permissions):
+        LynxNotificationsLogger.debug("requestPermissions resolved.")
         callback(NativeResult.ok(permissions.toDictionary).asDictionary())
       case let .failure(error):
+        LynxNotificationsLogger.error("requestPermissions failed with code=\(error.code) message=\(error.message)")
         callback(error.toNativeResult.asDictionary())
       }
     }
@@ -45,6 +48,7 @@ public final class LynxNotificationsModule {
 
   public func getPushToken(provider: String, callback: @escaping MethodCallback) {
     guard let tokenProvider = pushProviders.get(provider) else {
+      LynxNotificationsLogger.error("getPushToken failed: provider \"\(provider)\" is not registered.")
       callback(
         NativeResult<Any?>.error(
           code: "ERR_PROVIDER_UNCONFIGURED",
@@ -57,8 +61,12 @@ public final class LynxNotificationsModule {
     tokenProvider.getToken { result in
       switch result {
       case let .success(token):
+        LynxNotificationsLogger.debug("getPushToken succeeded for provider \"\(provider)\".")
         callback(NativeResult.ok(token.toDictionary).asDictionary())
       case let .failure(error):
+        LynxNotificationsLogger.error(
+          "getPushToken failed for provider \"\(provider)\" with code=\(error.code) message=\(error.message)"
+        )
         callback(error.toNativeResult.asDictionary())
       }
     }
@@ -68,8 +76,12 @@ public final class LynxNotificationsModule {
     scheduler.schedule(request: request) { result in
       switch result {
       case let .success(id):
+        LynxNotificationsLogger.debug("scheduleNotification succeeded with id=\(id)")
         callback(NativeResult.ok(id).asDictionary())
       case let .failure(error):
+        LynxNotificationsLogger.error(
+          "scheduleNotification failed with code=\(error.code) message=\(error.message)"
+        )
         callback(error.toNativeResult.asDictionary())
       }
     }
@@ -81,6 +93,9 @@ public final class LynxNotificationsModule {
       case .success:
         callback(NativeResult<Any?>.ok(nil).asDictionary())
       case let .failure(error):
+        LynxNotificationsLogger.error(
+          "cancelScheduledNotification failed with code=\(error.code) message=\(error.message)"
+        )
         callback(error.toNativeResult.asDictionary())
       }
     }
@@ -92,6 +107,9 @@ public final class LynxNotificationsModule {
       case .success:
         callback(NativeResult<Any?>.ok(nil).asDictionary())
       case let .failure(error):
+        LynxNotificationsLogger.error(
+          "cancelAllScheduledNotifications failed with code=\(error.code) message=\(error.message)"
+        )
         callback(error.toNativeResult.asDictionary())
       }
     }
@@ -103,16 +121,19 @@ public final class LynxNotificationsModule {
 
   public func startObservingEvents(_ callback: @escaping EventCallback) {
     eventCallback = callback
+    LynxNotificationsLogger.debug("startObservingEvents registered.")
     callback(NativeResult<Any?>.ok(nil).asDictionary())
   }
 
   public func stopObservingEvents(_ callback: MethodCallback) {
     eventCallback = nil
+    LynxNotificationsLogger.debug("stopObservingEvents completed.")
     callback(NativeResult<Any?>.ok(nil).asDictionary())
   }
 
   public func emitNotificationReceived(notification: [String: Any]) {
     guard let callback = eventCallback else {
+      LynxNotificationsLogger.debug("notification_received dropped because observer is not registered.")
       return
     }
 
@@ -124,6 +145,7 @@ public final class LynxNotificationsModule {
 
   public func emitNotificationResponse(response: [String: Any]) {
     guard let callback = eventCallback else {
+      LynxNotificationsLogger.debug("notification_response dropped because observer is not registered.")
       return
     }
 
@@ -137,6 +159,7 @@ public final class LynxNotificationsModule {
 
   public func emitTokenRefreshed(token: PushToken) {
     guard let callback = eventCallback else {
+      LynxNotificationsLogger.debug("token_refreshed dropped because observer is not registered.")
       return
     }
 

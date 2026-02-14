@@ -9,6 +9,7 @@ import android.os.Build;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import io.lynx.notifications.core.LynxNotificationsLogger;
 import io.lynx.notifications.core.NotificationPermissionProvider;
 import io.lynx.notifications.core.RuntimeNotificationPermissionProvider;
 
@@ -60,6 +61,7 @@ public final class AndroidNotificationPermissionAdapters {
 
     RuntimeNotificationPermissionProvider.PermissionRequestLauncher requestLauncher = callback -> {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        LynxNotificationsLogger.debug("Permission request skipped: API level < 33.");
         callback.onResult(NotificationManagerCompat.from(activity).areNotificationsEnabled());
         return;
       }
@@ -88,11 +90,15 @@ public final class AndroidNotificationPermissionAdapters {
     @Override
     public void request(RequestCallback callback) {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        LynxNotificationsLogger.debug("Permission bridge request resolved on API < 33.");
         callback.onResult(NotificationManagerCompat.from(appContext).areNotificationsEnabled());
         return;
       }
 
       if (launcher == null) {
+        LynxNotificationsLogger.error(
+            "Permission launcher is missing. attachLauncher(...) must be called before permission requests."
+        );
         callback.onFailure(new IllegalStateException(
             "Permission launcher is not attached. Call attachLauncher(...) before requesting permissions."
         ));
@@ -100,6 +106,7 @@ public final class AndroidNotificationPermissionAdapters {
       }
 
       if (pendingCallback != null) {
+        LynxNotificationsLogger.error("Notification permission request rejected because one is already in progress.");
         callback.onFailure(new IllegalStateException(
             "A notification permission request is already in progress."
         ));
@@ -107,16 +114,19 @@ public final class AndroidNotificationPermissionAdapters {
       }
 
       pendingCallback = callback;
+      LynxNotificationsLogger.debug("Launching POST_NOTIFICATIONS runtime permission request.");
       launcher.launch(Manifest.permission.POST_NOTIFICATIONS);
     }
 
     public void onPermissionRequestResult(boolean granted) {
       if (pendingCallback == null) {
+        LynxNotificationsLogger.debug("Permission result received without pending callback.");
         return;
       }
 
       RuntimeNotificationPermissionProvider.PermissionRequestLauncher.RequestCallback callback = pendingCallback;
       pendingCallback = null;
+      LynxNotificationsLogger.debug("Permission request result received. granted=" + granted);
       callback.onResult(granted);
     }
   }

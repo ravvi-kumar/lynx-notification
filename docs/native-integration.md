@@ -13,6 +13,10 @@ Production-ready host constructors:
 - Android: `examples/native-host/android/LynxNotificationsHostIntegration.java` (`InstallationOptions`)
 - iOS: `examples/native-host/ios/LynxNotificationsHostIntegration.swift` (`InstallationOptions`)
 
+Optional diagnostics:
+
+- set `debugLoggingEnabled` in `InstallationOptions` to enable native logs for permission/token/event failures.
+
 ## iOS Registration
 
 When using Lynx SDK 3.5+, register method auth validator and allow only notifications module methods for the target LynxView.
@@ -69,6 +73,7 @@ For production behavior, pass real host adapters through `InstallationOptions`:
    - `UNUserNotificationCenterLocalNotificationScheduler` (`native/ios/Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift`)
 
 Do not use `NoopPermissionProvider` or in-memory scheduler in release builds.
+Keep `debugLoggingEnabled` disabled in release builds unless investigating an incident.
 
 ## FCM Adapters
 

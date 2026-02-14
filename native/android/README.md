@@ -25,6 +25,7 @@ Core implementation templates:
 - `core/src/main/java/io/lynx/notifications/core/LynxNotificationsAuthValidator.java`
 - `core/src/main/java/io/lynx/notifications/core/LynxNotificationsInstaller.java`
 - `core/src/main/java/io/lynx/notifications/core/LynxNotificationsEventForwarder.java`
+- `core/src/main/java/io/lynx/notifications/core/LynxNotificationsLogger.java`
 
 FCM provider template:
 

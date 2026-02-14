@@ -16,6 +16,7 @@ Core implementation templates:
 - `Sources/Core/LynxNotificationsMethodAuth.swift`
 - `Sources/Core/LynxNotificationsInstaller.swift`
 - `Sources/Core/LynxNotificationsEventForwarder.swift`
+- `Sources/Core/LynxNotificationsLogger.swift`
 - `Sources/Core/UNUserNotificationCenterPermissionProvider.swift`
 - `Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift`
 

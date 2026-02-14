@@ -33,6 +33,7 @@ public final class FcmPushTokenProvider: PushTokenProvider {
 
   public func getToken(_ completion: @escaping (Result<PushToken, NotificationError>) -> Void) {
     guard let tokenFetcher else {
+      LynxNotificationsLogger.error("FCM token fetch failed: token fetcher is not configured.")
       completion(.failure(NotificationError(
         code: "ERR_PROVIDER_UNCONFIGURED",
         message: "FCM provider requires Firebase token fetcher wiring."
@@ -44,6 +45,7 @@ public final class FcmPushTokenProvider: PushTokenProvider {
       switch result {
       case let .success(token):
         if token.isEmpty {
+          LynxNotificationsLogger.error("FCM token fetch failed: Firebase returned an empty token.")
           completion(.failure(NotificationError(
             code: "ERR_PROVIDER_UNCONFIGURED",
             message: "FCM token was empty."
@@ -51,8 +53,10 @@ public final class FcmPushTokenProvider: PushTokenProvider {
           return
         }
 
+        LynxNotificationsLogger.debug("FCM token fetch succeeded.")
         completion(.success(PushToken(type: "fcm", data: token)))
       case let .failure(error):
+        LynxNotificationsLogger.error("FCM token fetch failed with native error: \(error.localizedDescription)")
         completion(.failure(NotificationError.from(error)))
       }
     }

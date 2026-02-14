@@ -9,6 +9,10 @@ package io.lynx.notifications.core;
 public final class LynxNotificationsInstaller {
   private LynxNotificationsInstaller() {}
 
+  public static void setDebugLoggingEnabled(boolean enabled) {
+    LynxNotificationsLogger.setDebugEnabled(enabled);
+  }
+
   public static void install(
       ModuleRegistrar moduleRegistrar,
       AuthValidatorRegistrar authValidatorRegistrar,

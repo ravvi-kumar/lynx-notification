@@ -28,11 +28,13 @@ Android `InstallationOptions` requires:
 
 1. `permissionProvider`: create with `io.lynx.notifications.android.AndroidNotificationPermissionAdapters.createPermissionProvider(...)`
 2. `scheduler`: use `io.lynx.notifications.android.AndroidAlarmLocalNotificationScheduler(...)`
+3. `debugLoggingEnabled` (optional): set `true` during QA/device validation to print native diagnostics.
 
 iOS `InstallationOptions` defaults to production adapters:
 
 1. `UNUserNotificationCenterPermissionProvider`
 2. `UNUserNotificationCenterLocalNotificationScheduler`
+3. `debugLoggingEnabled` (optional, default `false`)
 
 Android manifest note:
 

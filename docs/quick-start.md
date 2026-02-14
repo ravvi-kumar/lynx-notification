@@ -28,6 +28,8 @@ Native host examples:
   - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidAlarmLocalNotificationScheduler.java`
   - `native/android/runtime/src/main/java/io/lynx/notifications/android/AndroidNotificationPublisherReceiver.java`
 
+For QA/device debugging, enable native diagnostics via host `InstallationOptions.debugLoggingEnabled`.
+
 Device validation checklist:
 
 - `docs/testing-on-device.md`

@@ -15,6 +15,7 @@ public final class UNUserNotificationCenterPermissionProvider: NotificationPermi
 
   public func getPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void) {
     center.getNotificationSettings { settings in
+      LynxNotificationsLogger.debug("Fetched UNUserNotificationCenter permission settings.")
       completion(.success(Self.map(settings)))
     }
   }
@@ -22,10 +23,14 @@ public final class UNUserNotificationCenterPermissionProvider: NotificationPermi
   public func requestPermissions(_ completion: @escaping (Result<NotificationPermissions, NotificationError>) -> Void) {
     center.requestAuthorization(options: authorizationOptions) { _, error in
       if let error {
+        LynxNotificationsLogger.error(
+          "UNUserNotificationCenter permission request failed: \(error.localizedDescription)"
+        )
         completion(.failure(NotificationError.from(error)))
         return
       }
 
+      LynxNotificationsLogger.debug("UNUserNotificationCenter permission request completed.")
       self.getPermissions(completion)
     }
   }

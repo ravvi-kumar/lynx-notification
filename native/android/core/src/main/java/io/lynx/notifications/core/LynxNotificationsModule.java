@@ -35,6 +35,9 @@ public final class LynxNotificationsModule {
 
       @Override
       public void onError(NotificationError error) {
+        LynxNotificationsLogger.error(
+            "getPermissions failed with code=" + error.getCode() + " message=" + error.getMessage()
+        );
         callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
       }
     });
@@ -44,11 +47,15 @@ public final class LynxNotificationsModule {
     permissionProvider.requestPermissions(new NotificationPermissionProvider.PermissionsCallback() {
       @Override
       public void onSuccess(NotificationPermissions permissions) {
+        LynxNotificationsLogger.debug("requestPermissions resolved.");
         callback.resolve(NativeResult.ok(permissions.toMap()));
       }
 
       @Override
       public void onError(NotificationError error) {
+        LynxNotificationsLogger.error(
+            "requestPermissions failed with code=" + error.getCode() + " message=" + error.getMessage()
+        );
         callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
       }
     });
@@ -57,6 +64,7 @@ public final class LynxNotificationsModule {
   public void getPushToken(String provider, MethodCallback callback) {
     PushTokenProvider tokenProvider = pushProviders.get(provider);
     if (tokenProvider == null) {
+      LynxNotificationsLogger.error("getPushToken failed: provider \"" + provider + "\" is not registered.");
       callback.resolve(NativeResult.error(
           "ERR_PROVIDER_UNCONFIGURED",
           "No push provider registered for " + provider + "."
@@ -67,11 +75,16 @@ public final class LynxNotificationsModule {
     tokenProvider.getToken(new PushTokenProvider.TokenCallback() {
       @Override
       public void onSuccess(PushToken token) {
+        LynxNotificationsLogger.debug("getPushToken succeeded for provider \"" + provider + "\".");
         callback.resolve(NativeResult.ok(token.toMap()));
       }
 
       @Override
       public void onError(NotificationError error) {
+        LynxNotificationsLogger.error(
+            "getPushToken failed for provider \"" + provider + "\" with code="
+                + error.getCode() + " message=" + error.getMessage()
+        );
         callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
       }
     });
@@ -81,11 +94,15 @@ public final class LynxNotificationsModule {
     scheduler.schedule(request, new LocalNotificationScheduler.ScheduleCallback() {
       @Override
       public void onSuccess(String id) {
+        LynxNotificationsLogger.debug("scheduleNotification succeeded with id=" + id);
         callback.resolve(NativeResult.ok(id));
       }
 
       @Override
       public void onError(NotificationError error) {
+        LynxNotificationsLogger.error(
+            "scheduleNotification failed with code=" + error.getCode() + " message=" + error.getMessage()
+        );
         callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
       }
     });
@@ -100,6 +117,9 @@ public final class LynxNotificationsModule {
 
       @Override
       public void onError(NotificationError error) {
+        LynxNotificationsLogger.error(
+            "cancelScheduledNotification failed with code=" + error.getCode() + " message=" + error.getMessage()
+        );
         callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
       }
     });
@@ -114,6 +134,9 @@ public final class LynxNotificationsModule {
 
       @Override
       public void onError(NotificationError error) {
+        LynxNotificationsLogger.error(
+            "cancelAllScheduledNotifications failed with code=" + error.getCode() + " message=" + error.getMessage()
+        );
         callback.resolve(NativeResult.error(error.getCode(), error.getMessage()));
       }
     });
@@ -125,27 +148,35 @@ public final class LynxNotificationsModule {
 
   public void startObservingEvents(EventCallback callback) {
     eventCallback = callback;
+    LynxNotificationsLogger.debug("startObservingEvents registered.");
     callback.emit(NativeResult.ok(null));
   }
 
   public void stopObservingEvents(MethodCallback callback) {
     eventCallback = null;
+    LynxNotificationsLogger.debug("stopObservingEvents completed.");
     callback.resolve(NativeResult.ok(null));
   }
 
   public void emitNotificationReceived(Map<String, Object> notification) {
     if (eventCallback == null) {
+      LynxNotificationsLogger.debug("notification_received dropped because observer is not registered.");
       return;
     }
 
     Map<String, Object> event = new HashMap<>();
     event.put("type", "notification_received");
     event.put("notification", notification);
-    eventCallback.emit(event);
+    try {
+      eventCallback.emit(event);
+    } catch (Throwable throwable) {
+      LynxNotificationsLogger.error("Failed to emit notification_received event.", throwable);
+    }
   }
 
   public void emitNotificationResponse(Map<String, Object> response) {
     if (eventCallback == null) {
+      LynxNotificationsLogger.debug("notification_response dropped because observer is not registered.");
       return;
     }
 
@@ -154,18 +185,27 @@ public final class LynxNotificationsModule {
     Map<String, Object> event = new HashMap<>();
     event.put("type", "notification_response");
     event.put("response", response);
-    eventCallback.emit(event);
+    try {
+      eventCallback.emit(event);
+    } catch (Throwable throwable) {
+      LynxNotificationsLogger.error("Failed to emit notification_response event.", throwable);
+    }
   }
 
   public void emitTokenRefreshed(PushToken token) {
     if (eventCallback == null) {
+      LynxNotificationsLogger.debug("token_refreshed dropped because observer is not registered.");
       return;
     }
 
     Map<String, Object> event = new HashMap<>();
     event.put("type", "token_refreshed");
     event.put("token", token.toMap());
-    eventCallback.emit(event);
+    try {
+      eventCallback.emit(event);
+    } catch (Throwable throwable) {
+      LynxNotificationsLogger.error("Failed to emit token_refreshed event.", throwable);
+    }
   }
 
   public interface MethodCallback {

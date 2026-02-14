@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import io.lynx.notifications.core.LynxNotificationsLogger;
 import io.lynx.notifications.core.LocalNotificationScheduler;
 import io.lynx.notifications.core.NotificationError;
 import java.util.Map;
@@ -73,10 +74,15 @@ public final class AndroidAlarmLocalNotificationScheduler implements LocalNotifi
       }
 
       pendingIntents.put(id, pendingIntent);
+      LynxNotificationsLogger.debug("Scheduled local notification id=" + id);
       callback.onSuccess(id);
     } catch (NotificationError error) {
+      LynxNotificationsLogger.error(
+          "schedule failed with code=" + error.getCode() + " message=" + error.getMessage()
+      );
       callback.onError(error);
     } catch (Throwable throwable) {
+      LynxNotificationsLogger.error("schedule failed with unexpected native error.", throwable);
       callback.onError(NotificationError.fromThrowable(throwable));
     }
   }
@@ -99,10 +105,15 @@ public final class AndroidAlarmLocalNotificationScheduler implements LocalNotifi
         pendingIntent.cancel();
       }
 
+      LynxNotificationsLogger.debug("Canceled local notification id=" + id);
       callback.onSuccess();
     } catch (NotificationError error) {
+      LynxNotificationsLogger.error(
+          "cancel failed with code=" + error.getCode() + " message=" + error.getMessage()
+      );
       callback.onError(error);
     } catch (Throwable throwable) {
+      LynxNotificationsLogger.error("cancel failed with unexpected native error.", throwable);
       callback.onError(NotificationError.fromThrowable(throwable));
     }
   }
@@ -116,8 +127,10 @@ public final class AndroidAlarmLocalNotificationScheduler implements LocalNotifi
         pendingIntent.cancel();
       }
       pendingIntents.clear();
+      LynxNotificationsLogger.debug("Canceled all local notifications.");
       callback.onSuccess();
     } catch (Throwable throwable) {
+      LynxNotificationsLogger.error("cancelAll failed with unexpected native error.", throwable);
       callback.onError(NotificationError.fromThrowable(throwable));
     }
   }

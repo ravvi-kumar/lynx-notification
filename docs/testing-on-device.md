@@ -43,7 +43,8 @@ LynxNotificationsHostIntegration.InstallationOptions options =
     LynxNotificationsHostIntegration.createDefaultOptions(
         activity,
         bridge,
-        io.lynx.notifications.android.AndroidNotificationPublisherReceiver.class
+        io.lynx.notifications.android.AndroidNotificationPublisherReceiver.class,
+        true // enable native debug logs during QA
     );
 ```
 
@@ -51,6 +52,14 @@ iOS `InstallationOptions` already default to:
 
 1. `UNUserNotificationCenterPermissionProvider`
 2. `UNUserNotificationCenterLocalNotificationScheduler`
+
+Enable native debug logs during QA:
+
+```swift
+let options = LynxNotificationsHostIntegration.InstallationOptions(
+  debugLoggingEnabled: true
+)
+```
 
 If native folders are missing, follow `.lynx-notifications/integration-guide.md`.
 

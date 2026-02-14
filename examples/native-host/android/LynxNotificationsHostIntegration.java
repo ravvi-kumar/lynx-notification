@@ -23,6 +23,8 @@ public final class LynxNotificationsHostIntegration {
       LynxNotificationsInstaller.AuthValidatorRegistrar authValidatorRegistrar,
       InstallationOptions options
   ) {
+    LynxNotificationsInstaller.setDebugLoggingEnabled(options.debugLoggingEnabled);
+
     PushTokenProviderRegistry providers = new PushTokenProviderRegistry();
     providers.register("fcm", new FcmPushTokenProvider());
 
@@ -50,18 +52,28 @@ public final class LynxNotificationsHostIntegration {
       AndroidNotificationPermissionAdapters.PermissionRequestBridge permissionRequestBridge,
       Class<? extends BroadcastReceiver> notificationReceiverClass
   ) {
+    return createDefaultOptions(activity, permissionRequestBridge, notificationReceiverClass, false);
+  }
+
+  public static InstallationOptions createDefaultOptions(
+      Activity activity,
+      AndroidNotificationPermissionAdapters.PermissionRequestBridge permissionRequestBridge,
+      Class<? extends BroadcastReceiver> notificationReceiverClass,
+      boolean debugLoggingEnabled
+  ) {
     NotificationPermissionProvider permissionProvider =
         AndroidNotificationPermissionAdapters.createPermissionProvider(activity, permissionRequestBridge);
     LocalNotificationScheduler scheduler = new AndroidAlarmLocalNotificationScheduler(
         activity.getApplicationContext(),
         notificationReceiverClass
     );
-    return new InstallationOptions(permissionProvider, scheduler);
+    return new InstallationOptions(permissionProvider, scheduler, debugLoggingEnabled);
   }
 
   public static final class InstallationOptions {
     public final NotificationPermissionProvider permissionProvider;
     public final LocalNotificationScheduler scheduler;
+    public final boolean debugLoggingEnabled;
 
     /**
      * @param permissionProvider Runtime notification permission provider.
@@ -71,8 +83,22 @@ public final class LynxNotificationsHostIntegration {
         NotificationPermissionProvider permissionProvider,
         LocalNotificationScheduler scheduler
     ) {
+      this(permissionProvider, scheduler, false);
+    }
+
+    /**
+     * @param permissionProvider Runtime notification permission provider.
+     * @param scheduler Schedule/cancel local notifications via host app APIs.
+     * @param debugLoggingEnabled Enables native debug logs for diagnostics.
+     */
+    public InstallationOptions(
+        NotificationPermissionProvider permissionProvider,
+        LocalNotificationScheduler scheduler,
+        boolean debugLoggingEnabled
+    ) {
       this.permissionProvider = permissionProvider;
       this.scheduler = scheduler;
+      this.debugLoggingEnabled = debugLoggingEnabled;
     }
   }
 

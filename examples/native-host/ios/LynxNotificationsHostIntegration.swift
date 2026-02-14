@@ -4,13 +4,16 @@ public enum LynxNotificationsHostIntegration {
   public struct InstallationOptions {
     public let permissionProvider: NotificationPermissionProvider
     public let scheduler: LocalNotificationScheduler
+    public let debugLoggingEnabled: Bool
 
     public init(
       permissionProvider: NotificationPermissionProvider = UNUserNotificationCenterPermissionProvider(),
-      scheduler: LocalNotificationScheduler = UNUserNotificationCenterLocalNotificationScheduler()
+      scheduler: LocalNotificationScheduler = UNUserNotificationCenterLocalNotificationScheduler(),
+      debugLoggingEnabled: Bool = false
     ) {
       self.permissionProvider = permissionProvider
       self.scheduler = scheduler
+      self.debugLoggingEnabled = debugLoggingEnabled
     }
   }
 
@@ -29,6 +32,8 @@ public enum LynxNotificationsHostIntegration {
     methodAuthRegistrar: LynxNotificationsInstaller.MethodAuthRegistrar,
     options: InstallationOptions = InstallationOptions()
   ) -> Installation {
+    LynxNotificationsInstaller.setDebugLoggingEnabled(options.debugLoggingEnabled)
+
     let providers = PushTokenProviderRegistry()
     providers.register(name: "fcm", provider: FcmPushTokenProvider())
 

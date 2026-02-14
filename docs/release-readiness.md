@@ -2,6 +2,8 @@
 
 Current target: `0.1.0-alpha`
 
+Execution checklist: `docs/real-release-checklist.md`
+
 ## Status By Phase
 
 1. Phase 1 (JS core package): Complete
@@ -48,6 +50,12 @@ Current target: `0.1.0-alpha`
     - iOS XCTest runner (`swift test --package-path native/ios`)
 16. Remote Maven host-consumption verification in release workflow:
     - post-publish `host-check` assemble against remote repository coordinates
+17. Debug-gated native diagnostics:
+    - Android and iOS logging hooks for permission/token/event failure paths
+    - host `InstallationOptions.debugLoggingEnabled` toggle for QA runs
+18. Local release preflight script:
+    - `npm run release:preflight`
+    - `npm run release:preflight:publish`
 
 ## Remaining Before “Real Release”
 

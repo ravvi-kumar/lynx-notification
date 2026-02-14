@@ -143,6 +143,11 @@ Import and call \`bootstrapNotifications\` from:
 
 - \`src/notifications/bootstrap.ts\`
 
+## Native diagnostics (optional)
+
+- Enable \`debugLoggingEnabled\` in host native \`InstallationOptions\` during QA runs to print permission/token/event failure logs.
+- Keep \`debugLoggingEnabled\` disabled in production unless diagnosing an issue.
+
 Typical usage:
 
 \`const token = await Notifications.registerForPushNotificationsAsync();\`

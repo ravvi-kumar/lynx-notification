@@ -20,13 +20,18 @@ public final class UNUserNotificationCenterLocalNotificationScheduler: LocalNoti
 
       center.add(notificationRequest) { error in
         if let error {
+          LynxNotificationsLogger.error(
+            "UNUserNotificationCenter schedule failed: \(error.localizedDescription)"
+          )
           completion(.failure(NotificationError.from(error)))
           return
         }
 
+        LynxNotificationsLogger.debug("UNUserNotificationCenter scheduled notification id=\(id)")
         completion(.success(id))
       }
     } catch {
+      LynxNotificationsLogger.error("UNUserNotificationCenter schedule failed: \(error.localizedDescription)")
       completion(.failure(NotificationError.from(error)))
     }
   }
@@ -42,12 +47,14 @@ public final class UNUserNotificationCenterLocalNotificationScheduler: LocalNoti
 
     center.removePendingNotificationRequests(withIdentifiers: [id])
     center.removeDeliveredNotifications(withIdentifiers: [id])
+    LynxNotificationsLogger.debug("UNUserNotificationCenter canceled notification id=\(id)")
     completion(.success(()))
   }
 
   public func cancelAll(_ completion: @escaping (Result<Void, NotificationError>) -> Void) {
     center.removeAllPendingNotificationRequests()
     center.removeAllDeliveredNotifications()
+    LynxNotificationsLogger.debug("UNUserNotificationCenter canceled all notifications.")
     completion(.success(()))
   }
 
