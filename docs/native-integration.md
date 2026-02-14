@@ -5,6 +5,7 @@
 Register native module name: `LynxNotificationsModule`
 
 Contract reference: `native/CONTRACT.md`
+Host integration examples: `examples/native-host/`
 
 ## iOS Registration
 
@@ -20,6 +21,8 @@ LynxViewBuilder *builder = GetLynxViewBuilder();
 }];
 ```
 
+Installer helper template: `native/ios/Sources/Core/LynxNotificationsInstaller.swift`
+
 ## Android Registration
 
 When using Lynx SDK 3.5+, register module auth validator and allow only notifications module methods for the target LynxView.
@@ -32,6 +35,20 @@ LynxViewBuilder builder = LynxView.builder()
 ```
 
 Helper template: `native/android/core/src/main/java/io/lynx/notifications/core/LynxNotificationsAuthValidator.java`
+Installer helper template: `native/android/core/src/main/java/io/lynx/notifications/core/LynxNotificationsInstaller.java`
+
+## Host Wiring Pattern
+
+1. Construct `LynxNotificationsModule` with:
+- permission provider
+- push provider registry (register `fcm`)
+- local scheduler
+2. Register module name exactly as `LynxNotificationsModule` in host Lynx runtime.
+3. Register auth validator for SDK 3.5+ and allow only `LynxNotificationsModule`.
+4. Forward native push events to:
+- `emitNotificationReceived`
+- `emitNotificationResponse`
+- `emitTokenRefreshed`
 
 ## FCM Adapters
 

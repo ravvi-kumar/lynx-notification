@@ -292,13 +292,22 @@ function findEntryFile(cwd: string, entryArg?: string): string | null {
 async function wireEntryFile(
   cwd: string,
   entryFilePath: string,
+  bootstrapPath: string,
   patchedFiles: string[],
 ): Promise<boolean> {
+  const entryDirectory = path.dirname(entryFilePath)
+  const relativeImportPath = path.relative(entryDirectory, bootstrapPath)
+  const normalizedImportPath = relativeImportPath.split(path.sep).join('/')
+  const bootstrapImportPath = normalizedImportPath.startsWith('.')
+    ? normalizedImportPath
+    : `./${normalizedImportPath}`
+  const extensionlessImportPath = bootstrapImportPath.replace(/\.[jt]sx?$/i, '')
+
   const source = await readFile(entryFilePath, 'utf8')
   const updated = upsertManagedBlock(source, {
     startMarker: ENTRY_BOOTSTRAP_MARKERS.start,
     endMarker: ENTRY_BOOTSTRAP_MARKERS.end,
-    content: createEntryBootstrapSnippet(),
+    content: createEntryBootstrapSnippet(extensionlessImportPath),
   })
   const changed = await writeFileIfChanged(entryFilePath, updated)
   if (changed) {
@@ -420,7 +429,7 @@ export async function runInitCommand(
 
   if (wireEntry) {
     if (entryFilePath) {
-      entryWired = await wireEntryFile(cwd, entryFilePath, patchedFiles)
+      entryWired = await wireEntryFile(cwd, entryFilePath, bootstrapPath, patchedFiles)
     } else {
       const entryLabel = entryArg
         ? entryArg

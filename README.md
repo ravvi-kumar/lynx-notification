@@ -6,6 +6,7 @@ This repository contains:
 - `@lynx-notifications/core` at `/packages/core`
 - `lynx-notifications` CLI at `/packages/cli`
 - Demo workspace package at `/examples/lynx-notifications-demo`
+- Native host examples at `/examples/native-host`
 - Native artifact scaffolding at `/native`
 
 ## Quick Start

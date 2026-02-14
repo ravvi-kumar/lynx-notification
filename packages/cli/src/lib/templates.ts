@@ -44,9 +44,9 @@ export async function bootstrapNotifications(): Promise<() => void> {
 `
 }
 
-export function createEntryBootstrapSnippet(): string {
+export function createEntryBootstrapSnippet(bootstrapImportPath: string): string {
   return `void (async () => {
-  const { bootstrapNotifications } = await import('./notifications/bootstrap')
+  const { bootstrapNotifications } = await import('${bootstrapImportPath}')
   await bootstrapNotifications()
 })().catch(error => {
   console.warn('[lynx-notifications] bootstrap failed', error)

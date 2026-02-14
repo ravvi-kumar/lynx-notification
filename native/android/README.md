@@ -16,6 +16,7 @@ Core implementation templates:
 - `core/src/main/java/io/lynx/notifications/core/NoopPermissionProvider.java`
 - `core/src/main/java/io/lynx/notifications/core/InMemoryLocalNotificationScheduler.java`
 - `core/src/main/java/io/lynx/notifications/core/LynxNotificationsAuthValidator.java`
+- `core/src/main/java/io/lynx/notifications/core/LynxNotificationsInstaller.java`
 
 FCM provider template:
 

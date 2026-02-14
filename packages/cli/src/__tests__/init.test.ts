@@ -126,6 +126,25 @@ describe('lynx-notifications init', () => {
     expect(guide).toContain('Manual follow-ups')
   })
 
+  it('wires a custom nested entry path with correct relative bootstrap import', async () => {
+    const cwd = await makeTempProject()
+    await mkdir(path.join(cwd, 'src', 'main'), { recursive: true })
+    await writeFile(path.join(cwd, 'src', 'main', 'index.tsx'), 'console.info("entry")\n', 'utf8')
+    await writeLynxPackageJson(cwd)
+
+    const result = await runInitCommand(
+      ['--skip-install', '--entry', 'src/main/index.tsx'],
+      cwd,
+      silentLogger,
+    )
+
+    expect(result.entryWired).toBe(true)
+    expect(result.entryFilePath).toContain(path.join('src', 'main', 'index.tsx'))
+
+    const entry = await readFile(path.join(cwd, 'src', 'main', 'index.tsx'), 'utf8')
+    expect(entry).toContain("import('../notifications/bootstrap')")
+  })
+
   it('rejects non-lynx projects', async () => {
     const cwd = await makeTempProject()
     await writeFile(

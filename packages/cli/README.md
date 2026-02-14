@@ -15,3 +15,5 @@ Flags:
 - `--entry src/index.tsx` to force a custom entry file path
 - `--no-wire-entry` to skip auto-wiring bootstrap in the entry file
 - `--skip-install` to skip package manager installation and only update `package.json`
+
+When `--entry` is used, the CLI computes the correct relative import path to `src/notifications/bootstrap.ts`.

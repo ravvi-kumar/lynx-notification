@@ -14,6 +14,7 @@ Core implementation templates:
 
 - `Sources/Core/LynxNotificationsModule.swift`
 - `Sources/Core/LynxNotificationsMethodAuth.swift`
+- `Sources/Core/LynxNotificationsInstaller.swift`
 
 FCM provider template:
 

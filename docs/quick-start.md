@@ -14,6 +14,11 @@ This command will:
 - Patch native iOS/Android files when found
 - Generate `.lynx-notifications/integration-guide.md` when manual steps are needed
 
+Optional flags:
+
+- `--entry src/main/index.tsx` for custom app entry files
+- `--no-wire-entry` to skip entry auto-wiring
+
 ## Use in App Code
 
 ```ts
