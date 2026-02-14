@@ -16,6 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate Release Config
+        run: npm run validate:release-config
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -25,70 +30,18 @@ jobs:
           gradle-version: '8.10.2'
       - uses: android-actions/setup-android@v3
       - name: Publish Core To Maven Local
-        run: gradle -p native/android/core test publishCorePublicationToMavenLocal
+        run: gradle -p native/android :core:test :core:publishCorePublicationToMavenLocal
       - name: Publish Android Runtime To Maven Local
-        run: gradle -p native/android/runtime assembleRelease publishRuntimePublicationToMavenLocal
+        run: gradle -p native/android :runtime:assembleRelease :runtime:publishRuntimePublicationToMavenLocal
       - name: Publish FCM To Maven Local
-        run: gradle -p native/android/fcm assembleRelease publishFcmPublicationToMavenLocal
+        run: gradle -p native/android :fcm:assembleRelease :fcm:publishFcmPublicationToMavenLocal
       - name: Verify Maven Local Artifacts
         run: |
           test -f ~/.m2/repository/io/lynx/notifications/core/0.1.0-alpha/core-0.1.0-alpha.jar
           test -f ~/.m2/repository/io/lynx/notifications/android-runtime/0.1.0-alpha/android-runtime-0.1.0-alpha.aar
           test -f ~/.m2/repository/io/lynx/notifications/fcm/0.1.0-alpha/fcm-0.1.0-alpha.aar
       - name: Verify Host Consumption From Maven Local
-        run: |
-          mkdir -p /tmp/lynx-host-check/src/main/java/com/example/hostcheck
-          cat > /tmp/lynx-host-check/settings.gradle <<'EOF'
-          pluginManagement {
-            repositories {
-              mavenLocal()
-              google()
-              mavenCentral()
-              gradlePluginPortal()
-            }
-          }
-
-          dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-            repositories {
-              mavenLocal()
-              google()
-              mavenCentral()
-            }
-          }
-          rootProject.name = 'lynx-host-check'
-          EOF
-          cat > /tmp/lynx-host-check/build.gradle <<'EOF'
-          plugins {
-            id 'com.android.library' version '8.7.3'
-          }
-
-          android {
-            namespace 'com.example.hostcheck'
-            compileSdk 34
-
-            defaultConfig {
-              minSdk 24
-            }
-
-            compileOptions {
-              sourceCompatibility JavaVersion.VERSION_17
-              targetCompatibility JavaVersion.VERSION_17
-            }
-          }
-
-          dependencies {
-            implementation 'io.lynx.notifications:core:0.1.0-alpha'
-            implementation 'io.lynx.notifications:android-runtime:0.1.0-alpha'
-            implementation 'io.lynx.notifications:fcm:0.1.0-alpha'
-          }
-          EOF
-          cat > /tmp/lynx-host-check/src/main/java/com/example/hostcheck/Dummy.java <<'EOF'
-          package com.example.hostcheck;
-
-          public final class Dummy {}
-          EOF
-          gradle -p /tmp/lynx-host-check assembleDebug
+        run: gradle -p native/android/host-check assembleDebug
 
   ios-native:
     runs-on: macos-latest

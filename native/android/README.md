@@ -6,6 +6,11 @@ This folder contains publication scaffolding for:
 - `io.lynx.notifications:fcm`
 - `io.lynx.notifications:android-runtime`
 
+Gradle multi-project entry:
+
+- `settings.gradle` (includes `:core`, `:fcm`, `:runtime`)
+- `build.gradle`
+
 Expected runtime registration in host app:
 
 - Register `LynxNotificationsModule` into Lynx runtime.
@@ -38,3 +43,12 @@ The runtime artifact publishes as `io.lynx.notifications:android-runtime` and in
 Unit test scaffold:
 
 - `core/src/test/java/io/lynx/notifications/core/LynxNotificationsModuleTest.java`
+
+Host consumption check project:
+
+- `host-check/`
+
+CI workflows:
+
+- `.github/workflows/native-artifacts.yml`
+- `.github/workflows/release-alpha.yml`

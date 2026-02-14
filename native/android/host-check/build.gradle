@@ -1,0 +1,26 @@
+plugins {
+  id 'com.android.library' version '8.7.3'
+}
+
+group = 'io.lynx.notifications.hostcheck'
+version = '0.1.0'
+
+android {
+  namespace 'com.example.hostcheck'
+  compileSdk 34
+
+  defaultConfig {
+    minSdk 24
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+}
+
+dependencies {
+  implementation 'io.lynx.notifications:core:0.1.0-alpha'
+  implementation 'io.lynx.notifications:android-runtime:0.1.0-alpha'
+  implementation 'io.lynx.notifications:fcm:0.1.0-alpha'
+}

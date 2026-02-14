@@ -35,6 +35,14 @@ Current target: `0.1.0-alpha`
     - native Android publish-to-local checks
     - native iOS Swift parse checks
     - host-consumption assemble check from Maven local artifacts
+13. Android native multi-project build setup:
+    - `native/android/settings.gradle`
+    - `native/android/build.gradle`
+    - `native/android/host-check`
+14. Automated release-config validation:
+    - `scripts/validate-native-release.mjs`
+    - `npm run validate:release-config`
+    - `npm run validate:release-config:strict`
 
 ## Remaining Before “Real Release”
 
@@ -56,3 +64,24 @@ Current target: `0.1.0-alpha`
 ## Release Gate
 
 Do not promote beyond alpha until all items in “Remaining Before Real Release” are complete and verified on real devices.
+
+## Release Workflow Controls
+
+`Release Alpha` workflow (`.github/workflows/release-alpha.yml`) now supports:
+
+1. `release_mode`: `dry-run` or `publish`
+2. `publish_js`: publish npm packages toggle
+3. `publish_native`: publish native artifacts toggle
+
+Required secrets for real publish mode:
+
+1. `NPM_TOKEN` (JS npm publish)
+2. `MAVEN_PUBLISH_URL`
+3. `MAVEN_PUBLISH_USERNAME`
+4. `MAVEN_PUBLISH_PASSWORD`
+5. `COCOAPODS_TRUNK_TOKEN`
+
+Strict mode also enforces:
+
+1. iOS podspec placeholder metadata removal (`example` URLs/emails)
+2. JS/native artifact version consistency

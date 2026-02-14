@@ -6,6 +6,10 @@ plugins {
 group = 'io.lynx.notifications'
 version = '0.1.0-alpha'
 
+def mavenPublishUrl = findProperty('mavenPublishUrl') ?: System.getenv('MAVEN_PUBLISH_URL')
+def mavenPublishUsername = findProperty('mavenPublishUsername') ?: System.getenv('MAVEN_PUBLISH_USERNAME')
+def mavenPublishPassword = findProperty('mavenPublishPassword') ?: System.getenv('MAVEN_PUBLISH_PASSWORD')
+
 android {
   namespace 'io.lynx.notifications.android'
   compileSdk 34
@@ -47,6 +51,21 @@ afterEvaluate {
         artifactId = 'android-runtime'
         version = project.version
         from components.release
+      }
+    }
+    repositories {
+      mavenLocal()
+      if (mavenPublishUrl) {
+        maven {
+          name = 'remote'
+          url = uri(mavenPublishUrl)
+          if (mavenPublishUsername && mavenPublishPassword) {
+            credentials {
+              username = mavenPublishUsername
+              password = mavenPublishPassword
+            }
+          }
+        }
       }
     }
   }

@@ -32,4 +32,5 @@ npm run lint
 npm run build:packages
 npm run test:packages
 npm run typecheck:packages
+npm run validate:release-config
 ```

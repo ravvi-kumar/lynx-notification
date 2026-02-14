@@ -2,9 +2,46 @@ name: Release Alpha
 
 on:
   workflow_dispatch:
+    inputs:
+      release_mode:
+        description: 'Release mode'
+        required: true
+        type: choice
+        options:
+          - dry-run
+          - publish
+        default: dry-run
+      publish_js:
+        description: 'Publish npm packages'
+        required: true
+        type: boolean
+        default: true
+      publish_native:
+        description: 'Publish native artifacts'
+        required: true
+        type: boolean
+        default: false
 
 jobs:
+  validate-release-config:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate Release Config (Standard)
+        if: ${{ inputs.release_mode == 'dry-run' }}
+        run: npm run validate:release-config
+      - name: Validate Release Config (Strict)
+        if: ${{ inputs.release_mode == 'publish' }}
+        run: npm run validate:release-config:strict
+
   validate-native-android:
+    needs:
+      - validate-release-config
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,72 +56,22 @@ jobs:
           gradle-version: '8.10.2'
       - uses: android-actions/setup-android@v3
       - name: Publish Core To Maven Local
-        run: gradle -p native/android/core test publishCorePublicationToMavenLocal
+        run: gradle -p native/android :core:test :core:publishCorePublicationToMavenLocal
       - name: Publish Android Runtime To Maven Local
-        run: gradle -p native/android/runtime assembleRelease publishRuntimePublicationToMavenLocal
+        run: gradle -p native/android :runtime:assembleRelease :runtime:publishRuntimePublicationToMavenLocal
       - name: Publish FCM To Maven Local
-        run: gradle -p native/android/fcm assembleRelease publishFcmPublicationToMavenLocal
+        run: gradle -p native/android :fcm:assembleRelease :fcm:publishFcmPublicationToMavenLocal
       - name: Verify Maven Local Artifacts
         run: |
           test -f ~/.m2/repository/io/lynx/notifications/core/0.1.0-alpha/core-0.1.0-alpha.jar
           test -f ~/.m2/repository/io/lynx/notifications/android-runtime/0.1.0-alpha/android-runtime-0.1.0-alpha.aar
           test -f ~/.m2/repository/io/lynx/notifications/fcm/0.1.0-alpha/fcm-0.1.0-alpha.aar
       - name: Verify Host Consumption From Maven Local
-        run: |
-          mkdir -p /tmp/lynx-host-check/src/main/java/com/example/hostcheck
-          cat > /tmp/lynx-host-check/settings.gradle <<'EOF'
-          pluginManagement {
-            repositories {
-              mavenLocal()
-              google()
-              mavenCentral()
-              gradlePluginPortal()
-            }
-          }
-
-          dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-            repositories {
-              mavenLocal()
-              google()
-              mavenCentral()
-            }
-          }
-          rootProject.name = 'lynx-host-check'
-          EOF
-          cat > /tmp/lynx-host-check/build.gradle <<'EOF'
-          plugins {
-            id 'com.android.library' version '8.7.3'
-          }
-
-          android {
-            namespace 'com.example.hostcheck'
-            compileSdk 34
-
-            defaultConfig {
-              minSdk 24
-            }
-
-            compileOptions {
-              sourceCompatibility JavaVersion.VERSION_17
-              targetCompatibility JavaVersion.VERSION_17
-            }
-          }
-
-          dependencies {
-            implementation 'io.lynx.notifications:core:0.1.0-alpha'
-            implementation 'io.lynx.notifications:android-runtime:0.1.0-alpha'
-            implementation 'io.lynx.notifications:fcm:0.1.0-alpha'
-          }
-          EOF
-          cat > /tmp/lynx-host-check/src/main/java/com/example/hostcheck/Dummy.java <<'EOF'
-          package com.example.hostcheck;
-
-          public final class Dummy {}
-          EOF
-          gradle -p /tmp/lynx-host-check assembleDebug
+        run: gradle -p native/android/host-check assembleDebug
 
   validate-native-ios:
+    needs:
+      - validate-release-config
     runs-on: macos-latest
     permissions:
       contents: read
@@ -102,8 +89,81 @@ jobs:
             native/ios/Sources/FCM/FcmPushTokenProvider.swift \
             native/ios/Tests/Core/LynxNotificationsModuleTests.swift
 
-  publish:
+  publish-native-android:
+    if: ${{ inputs.publish_native }}
     needs:
+      - validate-release-config
+      - validate-native-android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - uses: android-actions/setup-android@v3
+      - name: Publish Android Native Artifacts (Dry Run)
+        if: ${{ inputs.release_mode == 'dry-run' }}
+        run: gradle -p native/android :core:publishCorePublicationToMavenLocal :runtime:publishRuntimePublicationToMavenLocal :fcm:publishFcmPublicationToMavenLocal
+      - name: Validate Android Maven Credentials
+        if: ${{ inputs.release_mode == 'publish' }}
+        run: |
+          test -n "${MAVEN_PUBLISH_URL}"
+          test -n "${MAVEN_PUBLISH_USERNAME}"
+          test -n "${MAVEN_PUBLISH_PASSWORD}"
+      - name: Publish Android Native Artifacts
+        if: ${{ inputs.release_mode == 'publish' }}
+        run: gradle -p native/android :core:publishCorePublicationToRemoteRepository :runtime:publishRuntimePublicationToRemoteRepository :fcm:publishFcmPublicationToRemoteRepository
+        env:
+          MAVEN_PUBLISH_URL: ${{ secrets.MAVEN_PUBLISH_URL }}
+          MAVEN_PUBLISH_USERNAME: ${{ secrets.MAVEN_PUBLISH_USERNAME }}
+          MAVEN_PUBLISH_PASSWORD: ${{ secrets.MAVEN_PUBLISH_PASSWORD }}
+
+  publish-native-ios:
+    if: ${{ inputs.publish_native }}
+    needs:
+      - validate-release-config
+      - validate-native-ios
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CocoaPods
+        run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            sudo gem install cocoapods
+          fi
+          pod --version
+      - name: CocoaPods Lint (Dry Run)
+        if: ${{ inputs.release_mode == 'dry-run' }}
+        run: |
+          cd native/ios
+          pod lib lint LynxNotificationsCore.podspec --allow-warnings --skip-tests --quick
+          pod lib lint LynxNotificationsFCM.podspec --allow-warnings --skip-tests --quick
+      - name: Validate CocoaPods Credentials
+        if: ${{ inputs.release_mode == 'publish' }}
+        run: test -n "${COCOAPODS_TRUNK_TOKEN}"
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+      - name: Publish CocoaPods Specs
+        if: ${{ inputs.release_mode == 'publish' }}
+        run: |
+          cd native/ios
+          pod trunk push LynxNotificationsCore.podspec --allow-warnings --skip-tests
+          pod trunk push LynxNotificationsFCM.podspec --allow-warnings --skip-tests
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+
+  publish-js:
+    if: ${{ inputs.publish_js }}
+    needs:
+      - validate-release-config
       - validate-native-android
       - validate-native-ios
     runs-on: ubuntu-latest
@@ -122,11 +182,16 @@ jobs:
         run: |
           npm run test:packages
           npm run build:packages
+      - name: npm Publish Dry Run
+        if: ${{ inputs.release_mode == 'dry-run' }}
+        run: npm run release:alpha:dry-run
       - name: Publish @lynx-notifications/core (alpha)
+        if: ${{ inputs.release_mode == 'publish' }}
         run: npm publish --workspace @lynx-notifications/core --tag alpha --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish lynx-notifications CLI (alpha)
+        if: ${{ inputs.release_mode == 'publish' }}
         run: npm publish --workspace lynx-notifications --tag alpha --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
