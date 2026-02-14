@@ -28,3 +28,8 @@ FCM provider template:
 Unit test scaffold:
 
 - `Tests/Core/LynxNotificationsModuleTests.swift`
+
+SwiftPM test runner:
+
+- `Package.swift`
+- run `swift test --package-path native/ios --filter LynxNotificationsCoreTests`

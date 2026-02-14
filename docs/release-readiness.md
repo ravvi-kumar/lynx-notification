@@ -43,21 +43,22 @@ Current target: `0.1.0-alpha`
     - `scripts/validate-native-release.mjs`
     - `npm run validate:release-config`
     - `npm run validate:release-config:strict`
+15. CI native test runners:
+    - Android instrumentation job (`:runtime:connectedDebugAndroidTest` on emulator)
+    - iOS XCTest runner (`swift test --package-path native/ios`)
+16. Remote Maven host-consumption verification in release workflow:
+    - post-publish `host-check` assemble against remote repository coordinates
 
 ## Remaining Before “Real Release”
 
 1. Android runtime artifact:
-   - stabilize and validate `android-runtime` Gradle publish pipeline end-to-end on CI runs
-   - verify host consumption from published remote Maven coordinates (non-local repo)
+   - execute and validate publish-mode workflow against real remote repository credentials
 2. iOS host production adapters:
    - integration testing of `UNUserNotificationCenter` adapters on physical devices
-3. End-to-end native test execution in CI:
-   - Android Gradle/JUnit/instrumentation runners
-   - iOS XCTest runner
-4. Device matrix verification:
+3. Device matrix verification:
    - Android 13+ physical devices
    - iOS 16+ physical devices
-5. Artifact publishing setup:
+4. Artifact publishing setup:
    - CocoaPods spec publishing validation
    - Maven publishing validation
 
@@ -72,6 +73,7 @@ Do not promote beyond alpha until all items in “Remaining Before Real Release�
 1. `release_mode`: `dry-run` or `publish`
 2. `publish_js`: publish npm packages toggle
 3. `publish_native`: publish native artifacts toggle
+4. remote Android host-consumption verification after native publish (publish mode)
 
 Required secrets for real publish mode:
 
@@ -85,3 +87,10 @@ Strict mode also enforces:
 
 1. iOS podspec placeholder metadata removal (`example` URLs/emails)
 2. JS/native artifact version consistency
+
+Optional repository variables for podspec metadata override:
+
+1. `LYNX_NOTIFICATIONS_HOMEPAGE`
+2. `LYNX_NOTIFICATIONS_IOS_SOURCE_GIT`
+3. `LYNX_NOTIFICATIONS_AUTHOR_NAME`
+4. `LYNX_NOTIFICATIONS_AUTHOR_EMAIL`

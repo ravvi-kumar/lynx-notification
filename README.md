@@ -33,4 +33,6 @@ npm run build:packages
 npm run test:packages
 npm run typecheck:packages
 npm run validate:release-config
+npm run test:native:ios
+npm run test:native:android:unit
 ```

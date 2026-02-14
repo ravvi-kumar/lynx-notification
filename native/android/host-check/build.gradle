@@ -4,6 +4,9 @@ plugins {
 
 group = 'io.lynx.notifications.hostcheck'
 version = '0.1.0'
+def notificationsVersion = findProperty('lynxNotificationsVersion')
+    ?: System.getenv('LYNX_NOTIFICATIONS_VERSION')
+    ?: '0.1.0-alpha'
 
 android {
   namespace 'com.example.hostcheck'
@@ -20,7 +23,7 @@ android {
 }
 
 dependencies {
-  implementation 'io.lynx.notifications:core:0.1.0-alpha'
-  implementation 'io.lynx.notifications:android-runtime:0.1.0-alpha'
-  implementation 'io.lynx.notifications:fcm:0.1.0-alpha'
+  implementation "io.lynx.notifications:core:${notificationsVersion}"
+  implementation "io.lynx.notifications:android-runtime:${notificationsVersion}"
+  implementation "io.lynx.notifications:fcm:${notificationsVersion}"
 }

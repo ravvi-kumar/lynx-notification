@@ -57,6 +57,21 @@ jobs:
       - uses: android-actions/setup-android@v3
       - name: Publish Core To Maven Local
         run: gradle -p native/android :core:test :core:publishCorePublicationToMavenLocal
+      - name: Build Runtime Instrumentation APK
+        run: gradle -p native/android :runtime:assembleDebugAndroidTest
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Runtime Instrumentation Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          script: gradle -p native/android :runtime:connectedDebugAndroidTest
       - name: Publish Android Runtime To Maven Local
         run: gradle -p native/android :runtime:assembleRelease :runtime:publishRuntimePublicationToMavenLocal
       - name: Publish FCM To Maven Local
@@ -77,17 +92,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Swift Parse Check
-        run: |
-          swiftc -parse \
-            native/ios/Sources/Core/LynxNotificationsModule.swift \
-            native/ios/Sources/Core/LynxNotificationsInstaller.swift \
-            native/ios/Sources/Core/LynxNotificationsMethodAuth.swift \
-            native/ios/Sources/Core/LynxNotificationsEventForwarder.swift \
-            native/ios/Sources/Core/UNUserNotificationCenterPermissionProvider.swift \
-            native/ios/Sources/Core/UNUserNotificationCenterLocalNotificationScheduler.swift \
-            native/ios/Sources/FCM/FcmPushTokenProvider.swift \
-            native/ios/Tests/Core/LynxNotificationsModuleTests.swift
+      - name: Build iOS FCM Target
+        run: swift build --package-path native/ios --target LynxNotificationsFCM
+      - name: Run iOS Core XCTest
+        run: swift test --package-path native/ios --filter LynxNotificationsCoreTests
 
   publish-native-android:
     if: ${{ inputs.publish_native }}
@@ -124,6 +132,54 @@ jobs:
           MAVEN_PUBLISH_USERNAME: ${{ secrets.MAVEN_PUBLISH_USERNAME }}
           MAVEN_PUBLISH_PASSWORD: ${{ secrets.MAVEN_PUBLISH_PASSWORD }}
 
+  verify-native-android-remote-consumption:
+    if: ${{ inputs.publish_native && inputs.release_mode == 'publish' }}
+    needs:
+      - validate-release-config
+      - publish-native-android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Resolve Notifications Version
+        id: notifications-version
+        run: echo "value=$(node -p \"require('./packages/core/package.json').version\")" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - uses: android-actions/setup-android@v3
+      - name: Validate Android Maven Credentials
+        run: |
+          test -n "${MAVEN_PUBLISH_URL}"
+          test -n "${MAVEN_PUBLISH_USERNAME}"
+          test -n "${MAVEN_PUBLISH_PASSWORD}"
+        env:
+          MAVEN_PUBLISH_URL: ${{ secrets.MAVEN_PUBLISH_URL }}
+          MAVEN_PUBLISH_USERNAME: ${{ secrets.MAVEN_PUBLISH_USERNAME }}
+          MAVEN_PUBLISH_PASSWORD: ${{ secrets.MAVEN_PUBLISH_PASSWORD }}
+      - name: Verify Host Consumption From Remote Maven
+        run: |
+          gradle -p native/android/host-check \
+            -PlynxNotificationsUseMavenLocal=false \
+            -PlynxNotificationsMavenUrl="${MAVEN_PUBLISH_URL}" \
+            -PlynxNotificationsMavenUsername="${MAVEN_PUBLISH_USERNAME}" \
+            -PlynxNotificationsMavenPassword="${MAVEN_PUBLISH_PASSWORD}" \
+            -PlynxNotificationsVersion="${LYNX_NOTIFICATIONS_VERSION}" \
+            assembleDebug
+        env:
+          MAVEN_PUBLISH_URL: ${{ secrets.MAVEN_PUBLISH_URL }}
+          MAVEN_PUBLISH_USERNAME: ${{ secrets.MAVEN_PUBLISH_USERNAME }}
+          MAVEN_PUBLISH_PASSWORD: ${{ secrets.MAVEN_PUBLISH_PASSWORD }}
+          LYNX_NOTIFICATIONS_VERSION: ${{ steps.notifications-version.outputs.value }}
+
   publish-native-ios:
     if: ${{ inputs.publish_native }}
     needs:
@@ -146,6 +202,11 @@ jobs:
           cd native/ios
           pod lib lint LynxNotificationsCore.podspec --allow-warnings --skip-tests --quick
           pod lib lint LynxNotificationsFCM.podspec --allow-warnings --skip-tests --quick
+        env:
+          LYNX_NOTIFICATIONS_HOMEPAGE: ${{ vars.LYNX_NOTIFICATIONS_HOMEPAGE }}
+          LYNX_NOTIFICATIONS_IOS_SOURCE_GIT: ${{ vars.LYNX_NOTIFICATIONS_IOS_SOURCE_GIT }}
+          LYNX_NOTIFICATIONS_AUTHOR_NAME: ${{ vars.LYNX_NOTIFICATIONS_AUTHOR_NAME }}
+          LYNX_NOTIFICATIONS_AUTHOR_EMAIL: ${{ vars.LYNX_NOTIFICATIONS_AUTHOR_EMAIL }}
       - name: Validate CocoaPods Credentials
         if: ${{ inputs.release_mode == 'publish' }}
         run: test -n "${COCOAPODS_TRUNK_TOKEN}"
@@ -159,6 +220,10 @@ jobs:
           pod trunk push LynxNotificationsFCM.podspec --allow-warnings --skip-tests
         env:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+          LYNX_NOTIFICATIONS_HOMEPAGE: ${{ vars.LYNX_NOTIFICATIONS_HOMEPAGE }}
+          LYNX_NOTIFICATIONS_IOS_SOURCE_GIT: ${{ vars.LYNX_NOTIFICATIONS_IOS_SOURCE_GIT }}
+          LYNX_NOTIFICATIONS_AUTHOR_NAME: ${{ vars.LYNX_NOTIFICATIONS_AUTHOR_NAME }}
+          LYNX_NOTIFICATIONS_AUTHOR_EMAIL: ${{ vars.LYNX_NOTIFICATIONS_AUTHOR_EMAIL }}
 
   publish-js:
     if: ${{ inputs.publish_js }}

@@ -72,6 +72,7 @@ async function validate() {
   const androidCoreGradlePath = 'native/android/core/build.gradle'
   const androidRuntimeGradlePath = 'native/android/runtime/build.gradle'
   const androidFcmGradlePath = 'native/android/fcm/build.gradle'
+  const androidHostCheckGradlePath = 'native/android/host-check/build.gradle'
 
   const iosCorePodspecPath = 'native/ios/LynxNotificationsCore.podspec'
   const iosFcmPodspecPath = 'native/ios/LynxNotificationsFCM.podspec'
@@ -83,6 +84,7 @@ async function validate() {
   const androidCoreGradle = await readText(androidCoreGradlePath)
   const androidRuntimeGradle = await readText(androidRuntimeGradlePath)
   const androidFcmGradle = await readText(androidFcmGradlePath)
+  const androidHostCheckGradle = await readText(androidHostCheckGradlePath)
 
   const iosCorePodspec = await readText(iosCorePodspecPath)
   const iosFcmPodspec = await readText(iosFcmPodspecPath)
@@ -166,6 +168,21 @@ async function validate() {
     })
   }
 
+  const hostCheckDefaultVersion = extractOrFail({
+    source: androidHostCheckGradle,
+    pattern: /def notificationsVersion =[\s\S]*?\?:\s*['"]([^'"]+)['"]/m,
+    label: 'notificationsVersion default',
+    file: androidHostCheckGradlePath,
+  })
+  if (hostCheckDefaultVersion) {
+    assertEqualVersion({
+      file: androidHostCheckGradlePath,
+      label: 'notificationsVersion default',
+      actual: hostCheckDefaultVersion,
+      expected: expectedVersion,
+    })
+  }
+
   const iosCoreVersion = extractOrFail({
     source: iosCorePodspec,
     pattern: /spec\.version\s*=\s*['"]([^'"]+)['"]/,
@@ -206,17 +223,20 @@ async function validate() {
     addError(`${templatesPath}: missing expected android-runtime artifact version ${expectedVersion}`)
   }
 
-  if (iosCorePodspec.includes('github.com/example/lynx-notifications')) {
-    addIssue(`${iosCorePodspecPath}: placeholder homepage/source URL must be replaced before release`)
-  }
-  if (iosFcmPodspec.includes('github.com/example/lynx-notifications')) {
-    addIssue(`${iosFcmPodspecPath}: placeholder homepage/source URL must be replaced before release`)
-  }
-  if (iosCorePodspec.includes('dev@example.com')) {
-    addIssue(`${iosCorePodspecPath}: placeholder author email must be replaced before release`)
-  }
-  if (iosFcmPodspec.includes('dev@example.com')) {
-    addIssue(`${iosFcmPodspecPath}: placeholder author email must be replaced before release`)
+  const placeholderPatterns = [
+    /example\.com/i,
+    /github\.com\/example\//i,
+    /dev@example\.com/i,
+  ]
+
+  for (const pattern of placeholderPatterns) {
+    if (pattern.test(iosCorePodspec)) {
+      addIssue(`${iosCorePodspecPath}: placeholder metadata pattern "${pattern}" must be replaced before release`)
+    }
+
+    if (pattern.test(iosFcmPodspec)) {
+      addIssue(`${iosFcmPodspecPath}: placeholder metadata pattern "${pattern}" must be replaced before release`)
+    }
   }
 
   printSummary()

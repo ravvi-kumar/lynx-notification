@@ -1,6 +1,26 @@
+def projectProperties = gradle.startParameter.projectProperties
+def useMavenLocal = !projectProperties.containsKey('lynxNotificationsUseMavenLocal')
+    || projectProperties['lynxNotificationsUseMavenLocal'] != 'false'
+def remoteRepoUrl = projectProperties['lynxNotificationsMavenUrl'] ?: System.getenv('LYNX_NOTIFICATIONS_MAVEN_URL')
+def remoteRepoUsername = projectProperties['lynxNotificationsMavenUsername'] ?: System.getenv('LYNX_NOTIFICATIONS_MAVEN_USERNAME')
+def remoteRepoPassword = projectProperties['lynxNotificationsMavenPassword'] ?: System.getenv('LYNX_NOTIFICATIONS_MAVEN_PASSWORD')
+
 pluginManagement {
   repositories {
-    mavenLocal()
+    if (useMavenLocal) {
+      mavenLocal()
+    }
+    if (remoteRepoUrl) {
+      maven {
+        url = uri(remoteRepoUrl)
+        if (remoteRepoUsername && remoteRepoPassword) {
+          credentials {
+            username = remoteRepoUsername
+            password = remoteRepoPassword
+          }
+        }
+      }
+    }
     google()
     mavenCentral()
     gradlePluginPortal()
@@ -10,7 +30,20 @@ pluginManagement {
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
   repositories {
-    mavenLocal()
+    if (useMavenLocal) {
+      mavenLocal()
+    }
+    if (remoteRepoUrl) {
+      maven {
+        url = uri(remoteRepoUrl)
+        if (remoteRepoUsername && remoteRepoPassword) {
+          credentials {
+            username = remoteRepoUsername
+            password = remoteRepoPassword
+          }
+        }
+      }
+    }
     google()
     mavenCentral()
   }

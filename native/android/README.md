@@ -43,6 +43,7 @@ The runtime artifact publishes as `io.lynx.notifications:android-runtime` and in
 Unit test scaffold:
 
 - `core/src/test/java/io/lynx/notifications/core/LynxNotificationsModuleTest.java`
+- `runtime/src/androidTest/java/io/lynx/notifications/android/AndroidAlarmLocalNotificationSchedulerInstrumentedTest.java`
 
 Host consumption check project:
 

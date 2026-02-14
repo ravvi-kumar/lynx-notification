@@ -14,3 +14,10 @@ dist/
 
 # TypeScript
 *.tsbuildinfo
+
+# Native build artifacts
+native/ios/.build/
+.swiftpm/
+
+# Local scratch
+.tmp/

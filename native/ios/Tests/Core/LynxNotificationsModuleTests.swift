@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+@testable import LynxNotificationsCore
 
 final class LynxNotificationsModuleTests: XCTestCase {
   func testRuntimePermissionDeniedMapping() {

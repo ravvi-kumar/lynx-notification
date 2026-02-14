@@ -79,7 +79,7 @@ public final class LynxNotificationsModule {
     scheduler.cancel(id: id) { result in
       switch result {
       case .success:
-        callback(NativeResult.ok(nil).asDictionary())
+        callback(NativeResult<Any?>.ok(nil).asDictionary())
       case let .failure(error):
         callback(error.toNativeResult.asDictionary())
       }
@@ -90,7 +90,7 @@ public final class LynxNotificationsModule {
     scheduler.cancelAll { result in
       switch result {
       case .success:
-        callback(NativeResult.ok(nil).asDictionary())
+        callback(NativeResult<Any?>.ok(nil).asDictionary())
       case let .failure(error):
         callback(error.toNativeResult.asDictionary())
       }

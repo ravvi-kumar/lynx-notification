@@ -1,4 +1,5 @@
 import Foundation
+import LynxNotificationsCore
 #if canImport(FirebaseMessaging)
 import FirebaseMessaging
 #endif
