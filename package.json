@@ -8,10 +8,11 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "rspeedy build",
+    "build": "npm run build:core && rspeedy build",
+    "build:core": "npm run build --workspace @lynx-notifications/core",
     "build:packages": "npm run build --workspaces --if-present",
     "ci:all": "npm run lint && npm run validate:release-config && npm run test && npm run test:packages && npm run typecheck:packages && npm run build:packages && npm run build",
-    "dev": "rspeedy dev",
+    "dev": "npm run build:core && rspeedy dev",
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rspeedy preview",
@@ -28,7 +29,8 @@
     "validate:release-config:strict": "node scripts/validate-native-release.mjs --strict"
   },
   "dependencies": {
-    "@lynx-js/react": "^0.116.2"
+    "@lynx-js/react": "^0.116.2",
+    "@lynx-notifications/core": "^0.1.0-alpha"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",

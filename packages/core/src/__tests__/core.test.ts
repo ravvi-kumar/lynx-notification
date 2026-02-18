@@ -28,6 +28,38 @@ function ok<T>(data: T): NativeResult<T> {
   }
 }
 
+type MapLike = {
+  get?: (key: string) => unknown
+  getString?: (key: string) => string | null
+  getBoolean?: (key: string) => boolean
+  getMap?: (key: string) => unknown
+}
+
+function createMapLike(entries: Record<string, unknown>): Record<string, unknown> & MapLike {
+  return {
+    ...entries,
+    get: (key: string) => entries[key],
+    getString: (key: string) => {
+      const value = entries[key]
+      return typeof value === 'string' ? value : null
+    },
+    getBoolean: (key: string) => {
+      const value = entries[key]
+      if (typeof value !== 'boolean') {
+        throw new Error(`Key "${key}" is not boolean`)
+      }
+      return value
+    },
+    getMap: (key: string) => {
+      const value = entries[key]
+      if (!value || typeof value !== 'object') {
+        throw new Error(`Key "${key}" is not map`)
+      }
+      return value
+    },
+  }
+}
+
 function installNativeModule(overrides: Partial<NativeNotificationsModule> = {}): NativeNotificationsModule {
   const defaultPermissions: NotificationPermissions = {
     status: 'granted',
@@ -90,6 +122,99 @@ beforeEach(() => {
 
 describe('notifications core API', () => {
   it('returns permissions from native module', async () => {
+    await expect(Notifications.getPermissionsAsync()).resolves.toEqual({
+      status: 'granted',
+      granted: true,
+      canAskAgain: true,
+    })
+  })
+
+  it('accepts callback payload when native bridge passes null first argument', async () => {
+    installNativeModule({
+      getPermissions: cb => {
+        ;(cb as unknown as (first: null, second: NativeResult<NotificationPermissions>) => void)(
+          null,
+          ok({
+            status: 'granted',
+            granted: true,
+            canAskAgain: true,
+          }),
+        )
+      },
+    })
+
+    await expect(Notifications.getPermissionsAsync()).resolves.toEqual({
+      status: 'granted',
+      granted: true,
+      canAskAgain: true,
+    })
+  })
+
+  it('rejects invalid permissions payload from native bridge', async () => {
+    installNativeModule({
+      getPermissions: cb => {
+        cb(ok(null as unknown as NotificationPermissions))
+      },
+    })
+
+    await expect(Notifications.getPermissionsAsync()).rejects.toMatchObject({
+      code: 'ERR_NATIVE_FAILURE',
+    })
+  })
+
+  it('accepts map-like native result payloads', async () => {
+    installNativeModule({
+      getPermissions: cb => {
+        cb(
+          createMapLike({
+            ok: true,
+            data: createMapLike({
+              status: 'granted',
+              granted: true,
+              canAskAgain: true,
+            }),
+          }) as unknown as NativeResult<NotificationPermissions>,
+        )
+      },
+    })
+
+    await expect(Notifications.getPermissionsAsync()).resolves.toEqual({
+      status: 'granted',
+      granted: true,
+      canAskAgain: true,
+    })
+  })
+
+  it('recovers nested data from map-like payload when direct field is null', async () => {
+    installNativeModule({
+      getPermissions: cb => {
+        const nestedData = createMapLike({
+          status: 'granted',
+          granted: true,
+          canAskAgain: true,
+        })
+        cb({
+          ok: true,
+          data: null,
+          get: (key: string) => {
+            if (key === 'ok') {
+              return true
+            }
+            if (key === 'data') {
+              return null
+            }
+            return undefined
+          },
+          getMap: (key: string) => {
+            if (key === 'data') {
+              return nestedData
+            }
+            return undefined
+          },
+        } as unknown as NativeResult<NotificationPermissions>)
+      },
+    })
+
     await expect(Notifications.getPermissionsAsync()).resolves.toEqual({
       status: 'granted',
       granted: true,

@@ -69,7 +69,18 @@ public class AndroidNotificationPublisherReceiver extends BroadcastReceiver {
 
     Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
     if (launchIntent != null) {
-      launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+      launchIntent.setFlags(
+          Intent.FLAG_ACTIVITY_NEW_TASK
+              | Intent.FLAG_ACTIVITY_CLEAR_TOP
+              | Intent.FLAG_ACTIVITY_SINGLE_TOP
+      );
+      launchIntent.setAction("io.lynx.notifications.ACTION_OPEN_NOTIFICATION");
+      launchIntent.putExtra(AndroidAlarmLocalNotificationScheduler.EXTRA_NOTIFICATION_ID, id);
+      launchIntent.putExtra(AndroidAlarmLocalNotificationScheduler.EXTRA_TITLE, title);
+      if (subtitle != null && !subtitle.isEmpty()) {
+        launchIntent.putExtra(AndroidAlarmLocalNotificationScheduler.EXTRA_SUBTITLE, subtitle);
+      }
+      launchIntent.putExtra(AndroidAlarmLocalNotificationScheduler.EXTRA_BODY, body);
       if (dataJson != null && !dataJson.isEmpty()) {
         launchIntent.putExtra(AndroidAlarmLocalNotificationScheduler.EXTRA_DATA_JSON, dataJson);
       }

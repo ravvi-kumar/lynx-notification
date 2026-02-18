@@ -6,6 +6,7 @@
       "name": "lynx-notification",
       "dependencies": {
         "@lynx-js/react": "^0.116.2",
+        "@lynx-notifications/core": "^0.1.0-alpha",
       },
       "devDependencies": {
         "@eslint/js": "^9.35.0",
@@ -26,6 +27,38 @@
         "typescript": "~5.9.3",
         "typescript-eslint": "^8.43.0",
         "vitest": "^3.2.4",
+      },
+    },
+    "examples/lynx-notifications-demo": {
+      "name": "lynx-notifications-demo",
+      "version": "0.1.0",
+      "dependencies": {
+        "@lynx-js/react": "^0.116.2",
+        "@lynx-notifications/core": "workspace:*",
+      },
+    },
+    "packages/cli": {
+      "name": "lynx-notifications",
+      "version": "0.1.0-alpha",
+      "bin": {
+        "lynx-notifications": "./dist/index.js",
+      },
+      "devDependencies": {
+        "typescript": "~5.9.3",
+        "vitest": "^3.2.4",
+      },
+    },
+    "packages/core": {
+      "name": "@lynx-notifications/core",
+      "version": "0.1.0-alpha",
+      "devDependencies": {
+        "@lynx-js/react": "^0.116.2",
+        "@lynx-js/types": "3.6.0",
+        "typescript": "~5.9.3",
+        "vitest": "^3.2.4",
+      },
+      "peerDependencies": {
+        "@lynx-js/react": "^0.116.2",
       },
     },
   },
@@ -225,6 +258,8 @@
     "@lynx-js/webpack-runtime-globals": ["@lynx-js/webpack-runtime-globals@0.0.6", "", {}, "sha512-VzpJc/w7v38/SHaZ+f3WBVBrsgXOG13YX9mRRxRrCgJQa+wZ6waRz7OIjntuTYJk2p7rQ0wKRGzsMgMfRBs/3g=="],
 
     "@lynx-js/websocket": ["@lynx-js/websocket@0.0.4", "", { "dependencies": { "eventemitter3": "^5.0.1" } }, "sha512-yXuMiTALLNvkDz8hG+0KdkBodnyJDvyfr8bdIq6zMP9X8JAoBC/czc1HIhUgYEJ3Zee5F/vGKjNxcoSx2t1E6w=="],
+
+    "@lynx-notifications/core": ["@lynx-notifications/core@workspace:packages/core"],
 
     "@module-federation/error-codes": ["@module-federation/error-codes@0.22.0", "", {}, "sha512-xF9SjnEy7vTdx+xekjPCV5cIHOGCkdn3pIxo9vU7gEZMIw0SvAEdsy6Uh17xaCpm8V0FWvR0SZoK9Ik6jGOaug=="],
 
@@ -937,6 +972,10 @@
     "loupe": ["loupe@3.2.1", "", {}, "sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ=="],
 
     "lru-cache": ["lru-cache@11.2.6", "", {}, "sha512-ESL2CrkS/2wTPfuend7Zhkzo2u0daGJ/A2VucJOgQ/C48S/zB8MMeMHSGKYpXhIjbPxfuezITkaBH1wqv00DDQ=="],
+
+    "lynx-notifications": ["lynx-notifications@workspace:packages/cli"],
+
+    "lynx-notifications-demo": ["lynx-notifications-demo@workspace:examples/lynx-notifications-demo"],
 
     "magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
 

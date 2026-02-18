@@ -175,12 +175,12 @@ public final class LynxNotificationsModule {
   }
 
   public void emitNotificationResponse(Map<String, Object> response) {
+    lastNotificationResponse = response;
+
     if (eventCallback == null) {
       LynxNotificationsLogger.debug("notification_response dropped because observer is not registered.");
       return;
     }
-
-    lastNotificationResponse = response;
 
     Map<String, Object> event = new HashMap<>();
     event.put("type", "notification_response");

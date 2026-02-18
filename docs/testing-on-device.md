@@ -12,6 +12,21 @@ npx lynx-notifications init --provider fcm --platform ios,android
 
 Confirm your entry imports and runs `bootstrapNotifications` from `src/notifications/bootstrap.ts`.
 
+## 1.1) Use The Default `/src` Test Console
+
+The default `src/App.tsx` is now a notifications device test console with buttons for:
+
+1. permissions (`Get Permissions`, `Request Permissions`)
+2. push token (`Register Push`)
+3. local notification (`Schedule Local (5s)`)
+4. response checks (`Get Last Response`)
+5. cleanup (`Cancel Last`, `Cancel All`)
+
+You can run this app directly on your device and validate end-to-end behavior from this screen.
+
+If native host integration is missing, the screen will show native module unavailable.
+Real local/push OS notifications require native host wiring.
+
 ## 2) Wire Native Host
 
 Use the host templates:

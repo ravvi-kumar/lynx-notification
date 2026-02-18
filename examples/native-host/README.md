@@ -3,6 +3,7 @@
 This folder contains copy-ready integration snippets for host apps embedding Lynx.
 
 - Android: `android/LynxNotificationsHostIntegration.java`
+- Android Lynx bridge module: `android/LynxNotificationsBridgeModule.java`
 - iOS: `ios/LynxNotificationsHostIntegration.swift`
 
 Android runtime adapters are now published from:
@@ -16,7 +17,7 @@ Use Maven dependency: `implementation("io.lynx.notifications:android-runtime:0.1
 These examples show how to:
 
 1. Create `LynxNotificationsModule` with FCM provider wiring
-2. Register module name `LynxNotificationsModule`
+2. Register module name `LynxNotificationsModule` (bridge class template included)
 3. Register SDK 3.5+ auth validator using installer helpers
 4. Forward host push events via `LynxNotificationsEventForwarder`
 

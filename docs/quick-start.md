@@ -36,6 +36,8 @@ Device validation checklist:
 
 ## Use in App Code
 
+The default app at `src/App.tsx` is already a device test console for notifications.
+
 ```ts
 import * as Notifications from '@lynx-notifications/core'
 
