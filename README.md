@@ -12,12 +12,19 @@ This repository contains:
 ## Quick Start
 
 ```bash
-npx lynx-notifications init --provider fcm --platform ios,android
+bun install
 ```
+
+```bash
+bunx lynx-notifications init --provider fcm --platform ios,android
+```
+
+`npm`/`npx` also work, but this repo is maintained primarily with Bun.
 
 ## Docs
 
 - `/docs/quick-start.md`
+- `/docs/runtime-modes.md`
 - `/docs/native-integration.md`
 - `/docs/testing-on-device.md`
 - `/docs/release-readiness.md`
@@ -26,16 +33,16 @@ npx lynx-notifications init --provider fcm --platform ios,android
 ## Commands
 
 ```bash
-npm run dev
-npm run build
-npm run test
-npm run lint
-npm run build:packages
-npm run test:packages
-npm run typecheck:packages
-npm run validate:release-config
-npm run release:preflight
-npm run release:preflight:publish
-npm run test:native:ios
-npm run test:native:android:unit
+bun run dev
+bun run build
+bun run test
+bun run lint
+bun run build:packages
+bun run test:packages
+bun run typecheck:packages
+bun run validate:release-config
+bun run release:preflight
+bun run release:preflight:publish
+bun run test:native:ios
+bun run test:native:android:unit
 ```

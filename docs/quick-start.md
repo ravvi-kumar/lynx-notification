@@ -1,5 +1,17 @@
 # Lynx Notifications Quick Start
 
+## Choose Runtime Mode First
+
+Before setup, decide where you run:
+
+1. Stock Lynx Explorer: JS-only validation, no real native notifications.
+2. Custom Lynx Explorer: real device validation with custom module integration.
+3. Your own native host app: production path.
+
+Read first:
+
+- `docs/runtime-modes.md`
+
 ## Install
 
 ```bash
