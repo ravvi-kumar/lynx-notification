@@ -111,8 +111,25 @@ Expected:
 1. Install and configure Firebase Messaging in host iOS/Android projects.
 2. Launch app on real device.
 3. Call `registerForPushNotificationsAsync()` and capture returned token.
-4. Send a test push to that token from Firebase Console.
+4. Send a test push to that token (Firebase Console or local script below).
 5. Confirm receive/response listeners fire exactly once.
+
+### Local script option (Android)
+
+Use the included script with your Firebase Admin service account JSON:
+
+```bash
+npm run push:test:android -- \
+  --token "<FCM_TOKEN_FROM_REGISTER_PUSH>" \
+  --service-account "/absolute/path/to/firebase-admin-service-account.json" \
+  --title "Lynx Push Test" \
+  --body "Remote push from local script"
+```
+
+Optional flags:
+
+1. `--data key=value` (repeatable)
+2. `--dry-run` (validates send payload without delivering)
 
 ## 5) Common Failures
 

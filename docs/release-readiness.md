@@ -7,7 +7,7 @@ Execution checklist: `docs/real-release-checklist.md`
 ## Status By Phase
 
 1. Phase 1 (JS core package): Complete
-2. Phase 2 (Android native core + FCM): In progress
+2. Phase 2 (Android native core + FCM): Complete (physical-device validated)
 3. Phase 3 (iOS native core + FCM): In progress
 4. Phase 4 (CLI init + patching): Complete for v1 scope
 5. Phase 5 (demo/docs/release pipeline): In progress
@@ -56,19 +56,24 @@ Execution checklist: `docs/real-release-checklist.md`
 18. Local release preflight script:
     - `npm run release:preflight`
     - `npm run release:preflight:publish`
+19. Android end-to-end physical-device validation (custom Lynx Explorer host):
+    - module registration confirmed
+    - permission flow confirmed
+    - local notification scheduling + delivery confirmed
+    - FCM token registration confirmed
+    - remote push delivery confirmed (including app inactive/background case)
 
 ## Remaining Before “Real Release”
 
-1. Android runtime artifact:
-   - execute and validate publish-mode workflow against real remote repository credentials
-2. iOS host production adapters:
-   - integration testing of `UNUserNotificationCenter` adapters on physical devices
-3. Device matrix verification:
-   - Android 13+ physical devices
-   - iOS 16+ physical devices
-4. Artifact publishing setup:
-   - CocoaPods spec publishing validation
-   - Maven publishing validation
+1. iOS remote push path:
+   - complete APNs/FCM wiring and validate push token + remote delivery on physical iOS device
+2. Android artifact publishing:
+   - execute and validate publish-mode workflow against real remote Maven credentials
+3. iOS artifact publishing:
+   - validate CocoaPods trunk publish flow with production credentials
+4. Device matrix verification:
+   - re-run Android 13+ verification on at least one additional physical device
+   - complete iOS 16+ physical-device matrix including cold-start response path
 
 ## Release Gate
 
