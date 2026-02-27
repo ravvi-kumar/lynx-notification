@@ -46,3 +46,8 @@ bun run release:preflight:publish
 bun run test:native:ios
 bun run test:native:android:unit
 ```
+
+Important:
+
+- Use `bun run test` (Vitest).
+- Do not use `bun test` in this repository. `bun test` runs Bun's built-in runner and bypasses Vitest/Lynx test setup.
