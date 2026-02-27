@@ -8,11 +8,11 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "npm run build:core && rspeedy build",
-    "build:core": "npm run build --workspace @lynx-notifications/core",
-    "build:packages": "npm run build --workspaces --if-present",
+    "build": "node scripts/run-workspace-script.mjs build packages/core && rspeedy build",
+    "build:core": "node scripts/run-workspace-script.mjs build packages/core",
+    "build:packages": "node scripts/run-workspace-script.mjs build packages/core packages/cli",
     "ci:all": "npm run lint && npm run validate:release-config && npm run test && npm run test:packages && npm run typecheck:packages && npm run build:packages && npm run build",
-    "dev": "npm run build:core && rspeedy dev",
+    "dev": "node scripts/run-workspace-script.mjs build packages/core && rspeedy dev",
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rspeedy preview",
@@ -24,8 +24,8 @@
     "test:native:android:instrumentation:compile": "gradle -p native/android :runtime:assembleDebugAndroidTest",
     "test:native:android:unit": "gradle -p native/android :core:test",
     "test:native:ios": "swift test --package-path native/ios --filter LynxNotificationsCoreTests",
-    "test:packages": "npm run test --workspaces --if-present",
-    "typecheck:packages": "npm run typecheck --workspaces --if-present",
+    "test:packages": "node scripts/run-workspace-script.mjs test packages/core packages/cli",
+    "typecheck:packages": "node scripts/run-workspace-script.mjs typecheck packages/core packages/cli",
     "validate:release-config": "node scripts/validate-native-release.mjs",
     "validate:release-config:strict": "node scripts/validate-native-release.mjs --strict"
   },
