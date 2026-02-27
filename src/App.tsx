@@ -11,6 +11,10 @@ const MAX_LOG_ENTRIES = 200
 const MAX_VISIBLE_LOG_ENTRIES = 14
 declare const NativeModules: Record<string, unknown> | undefined
 
+function ignoreRuntimeError(error: unknown): void {
+  void error
+}
+
 function toErrorMessage(error: unknown): string {
   if (!error || typeof error !== 'object') {
     return String(error ?? 'Unknown error')
@@ -66,7 +70,9 @@ function findNativeModuleByName(modules: unknown, names: string[]): Record<strin
       if (direct && typeof direct === 'object') {
         return direct as Record<string, unknown>
       }
-    } catch {}
+    } catch (error) {
+      ignoreRuntimeError(error)
+    }
 
     if (getter) {
       try {
@@ -74,7 +80,9 @@ function findNativeModuleByName(modules: unknown, names: string[]): Record<strin
         if (fromGet && typeof fromGet === 'object') {
           return fromGet as Record<string, unknown>
         }
-      } catch {}
+      } catch (error) {
+        ignoreRuntimeError(error)
+      }
     }
   }
 
@@ -96,7 +104,9 @@ function describeNativeModulesValue(label: string, value: unknown): string {
   if (hasGetter) {
     try {
       hasGetterModule = Boolean(candidate.get?.('LynxNotificationsModule') ?? candidate.get?.('LynxNotificationModule'))
-    } catch {}
+    } catch (error) {
+      ignoreRuntimeError(error)
+    }
   }
 
   const keySummary = keys.length > 0 ? keys.slice(0, 10).join(',') : '<none>'
@@ -137,7 +147,9 @@ async function writeTextToClipboard(text: string): Promise<boolean> {
     try {
       await maybeNavigator.clipboard.writeText(text)
       return true
-    } catch {}
+    } catch (error) {
+      ignoreRuntimeError(error)
+    }
   }
 
   const runtimeModules = (() => {
@@ -145,7 +157,9 @@ async function writeTextToClipboard(text: string): Promise<boolean> {
       if (typeof NativeModules !== 'undefined' && NativeModules && typeof NativeModules === 'object') {
         return NativeModules as Record<string, unknown>
       }
-    } catch {}
+    } catch (error) {
+      ignoreRuntimeError(error)
+    }
 
     const fromGlobalThis = (globalThis as { NativeModules?: unknown }).NativeModules
     if (fromGlobalThis && typeof fromGlobalThis === 'object') {
@@ -234,7 +248,9 @@ async function probeRawNativeGetPermissions(): Promise<string> {
       if (typeof NativeModules !== 'undefined') {
         return NativeModules
       }
-    } catch {}
+    } catch (error) {
+      ignoreRuntimeError(error)
+    }
     return (globalThis as { NativeModules?: unknown }).NativeModules
   })()
 

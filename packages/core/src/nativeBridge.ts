@@ -16,7 +16,7 @@ const MODULE_NAME = 'LynxNotificationsModule'
 const MODULE_NAME_ALIASES = ['LynxNotificationModule']
 declare const NativeModules: Record<string, unknown> | undefined
 
-type NativeMethod<T> = (cb: (...result: unknown[]) => void) => void
+type NativeMethod = (cb: (...result: unknown[]) => void) => void
 
 type GlobalWithNativeModules = {
   NativeModules?: unknown
@@ -28,6 +28,10 @@ type MapLikeValue = Record<string, unknown> & {
   getBoolean?: (key: string) => unknown
   getMap?: (key: string) => unknown
   getArray?: (key: string) => unknown
+}
+
+function ignoreNativeAccessError(error: unknown): void {
+  void error
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -66,7 +70,9 @@ function readProperty(value: unknown, key: string): unknown {
         encounteredNull = true
       }
     }
-  } catch {}
+  } catch (error) {
+    ignoreNativeAccessError(error)
+  }
 
   const mapKeys = new Set(['data', 'error', 'notification', 'response', 'token', 'event', 'request', 'content', 'trigger'])
   if (mapKeys.has(key)) {
@@ -80,7 +86,9 @@ function readProperty(value: unknown, key: string): unknown {
           encounteredNull = true
         }
       }
-    } catch {}
+    } catch (error) {
+      ignoreNativeAccessError(error)
+    }
   }
 
   try {
@@ -93,7 +101,9 @@ function readProperty(value: unknown, key: string): unknown {
         encounteredNull = true
       }
     }
-  } catch {}
+  } catch (error) {
+    ignoreNativeAccessError(error)
+  }
 
   try {
     if (typeof candidate.getBoolean === 'function') {
@@ -105,7 +115,9 @@ function readProperty(value: unknown, key: string): unknown {
         encounteredNull = true
       }
     }
-  } catch {}
+  } catch (error) {
+    ignoreNativeAccessError(error)
+  }
 
   try {
     if (typeof candidate.getArray === 'function') {
@@ -117,7 +129,9 @@ function readProperty(value: unknown, key: string): unknown {
         encounteredNull = true
       }
     }
-  } catch {}
+  } catch (error) {
+    ignoreNativeAccessError(error)
+  }
 
   return encounteredNull ? null : undefined
 }
@@ -174,7 +188,9 @@ function findModuleCandidate(modules: Record<string, unknown>): unknown {
         if (value) {
           return value
         }
-      } catch {}
+      } catch (error) {
+        ignoreNativeAccessError(error)
+      }
     }
   }
 
@@ -354,7 +370,7 @@ function ensureMethod<T extends keyof NativeNotificationsModule>(module: NativeN
 export async function getPermissionsFromNative(): Promise<NotificationPermissions> {
   const result = await callNativeMethod((module, cb) => {
     const method = ensureMethod(module, 'getPermissions')
-    ;(method as NativeMethod<NotificationPermissions>)(cb)
+    ;(method as NativeMethod)(cb)
   })
 
   return toValidPermissions(result, 'getPermissions')
@@ -363,7 +379,7 @@ export async function getPermissionsFromNative(): Promise<NotificationPermission
 export async function requestPermissionsFromNative(): Promise<NotificationPermissions> {
   const result = await callNativeMethod((module, cb) => {
     const method = ensureMethod(module, 'requestPermissions')
-    ;(method as NativeMethod<NotificationPermissions>)(cb)
+    ;(method as NativeMethod)(cb)
   })
 
   return toValidPermissions(result, 'requestPermissions')
@@ -413,7 +429,7 @@ export async function cancelAllScheduledNotificationsFromNative(): Promise<void>
 export async function getLastNotificationResponseFromNative(): Promise<NotificationResponse | null> {
   return callNativeMethod((module, cb) => {
     const method = ensureMethod(module, 'getLastNotificationResponse')
-    ;(method as NativeMethod<NotificationResponse | null>)(cb)
+    ;(method as NativeMethod)(cb)
   })
 }
 
